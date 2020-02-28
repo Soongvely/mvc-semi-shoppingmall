@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>		<!-- 매퍼 파일 -->
+
+<!DOCTYPE sqlMap      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="orderProducts">
+	
+	<!-- 주문상품 등록 -->
+	<insert id="insertOrderProduct">
+		insert into shop_order_products (order_product_no, order_no, order_amount, opt_no)
+		values (shop_order_product_seq.nextval, #order.no#, #orderAmount#, #itemOption.no#)
+	</insert>
+	<!-- 작성가능한 리뷰 조회 -->
+	<select id="writepossibleReviewBycustNo" parameterClass="int" resultClass="OrderProduct">
+		select
+			C.item_image_path 		"itemOption.item.imagePath",
+			C.item_brand 			"itemOption.item.brand",
+			C.item_name  			"itemOption.item.name", 
+			B.opt_color  			"itemOption.color", 
+			B.opt_size  			"itemOption.size", 
+			D.order_create_date  	"order.createDate",
+			A.order_product_no		no,
+			C.cate_no				"itemOption.item.category.no",
+			C.item_no				"itemOption.item.no"
+		from 
+			shop_order_products A, shop_item_options B, shop_items C, shop_orders D 
+		where 
+			A.opt_no = B.opt_no 
+			and B.item_no = C.item_no
+			and A.order_no = D.order_no
+			and A.order_no in (select order_no 
+							   from shop_orders
+							   where cust_no = #value#)
+			and A.review_enabled = 'N'
+	</select>
+	
+	<!-- 주문상품번호로 조회 -->
+	<select id="getOrderProductByNo" parameterClass="int" resultClass="OrderProduct">
+		select 
+			A.order_product_no			no,
+			A.order_no					"order.no",
+			A.order_amount				orderAmount,
+			A.opt_no					"opt.no",
+			A.review_enabled			reviewEnabled,
+			A.order_product_status		productStatus,
+			B.order_total_price			"order.totalPrice"
+		from 
+			shop_order_products A, shop_orders B
+		where 
+			A.order_no = B.order_no
+			and order_product_no = #value#
+	</select>
+	
+	<!-- 주문상품번호로 주문상품 내용 변경 -->
+	<update id="updateOrderProductByNo" parameterClass="OrderProduct">
+		update
+			shop_order_products
+		set 
+			order_product_status = #productStatus#,
+			review_enabled = #reviewEnabled#
+		where
+			 order_product_no = #no#
+	</update>
+	
+	<!-- 주문상품번호로 조회해서 옵션번호를 반환 -->
+	<select id="getItemOptionNoByOrderProductNo" parameterClass="int" resultClass="int">
+		select
+			B.opt_no
+		from
+			shop_order_products A, shop_item_options B 
+		where
+			A.opt_no = B.opt_no
+			and A.order_product_no = #value#
+	</select>
+
+</sqlMap>

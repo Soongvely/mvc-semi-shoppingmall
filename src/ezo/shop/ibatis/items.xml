@@ -1,0 +1,662 @@
+<?xml version="1.0" encoding="UTF-8" ?>		<!-- 매퍼 파일 -->
+
+<!DOCTYPE sqlMap      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="items">
+
+	<select id="getSearchItemName" parameterClass="String" resultClass="Item">
+		select
+			item_name as name
+		from
+			shop_items
+		where
+			upper(item_name) like '%' || upper(#value#) || '%'
+		order by
+			DECODE(SUBSTR(item_name,0,1),#value#,item_name)  ASC
+			
+
+	</select>
+	
+	<select id="getItemBrandList" parameterClass="Map" resultClass="BrandCheck">
+		select
+			item_brand	as brand,
+			count(*) as count
+		from(select
+				row_number() over (order by item_name desc ) rn,
+				A.item_brand
+			  from
+			  	shop_items A, shop_categories B 
+			  where
+		   		1=1
+			   	<dynamic>
+			   		and A.cate_no = B.cate_no
+			   		<isNotNull property="title">
+					<isEqual property="title" compareValue="WOMEN">
+						and B.main_cate_no = 109
+							<isEqual property="smallMenu" compareValue="TOP">
+								and B.cate_no = 113
+							</isEqual>
+							<isEqual property="smallMenu" compareValue="BOTTOM">
+								and B.cate_no = 114
+							</isEqual>
+					</isEqual>
+					<isEqual property="title" compareValue="MEN">
+						and B.main_cate_no = 108
+							<isEqual property="smallMenu" compareValue="TOP">
+								and B.cate_no = 111
+							</isEqual>
+							<isEqual property="smallMenu" compareValue="BOTTOM">
+								and B.cate_no = 112
+							</isEqual>
+					</isEqual>
+					<isEqual property="title" compareValue="ACC">
+							and B.main_cate_no = 110
+							<isEqual property="smallMenu" compareValue="JEWELRY">
+								and B.cate_no = 115
+							</isEqual>
+							<isEqual property="smallMenu" compareValue="ETC">
+								and B.cate_no = 116
+							</isEqual>
+					</isEqual>
+				</isNotNull>
+			   	</dynamic>
+			)
+			group by
+				item_brand
+	</select>
+	
+	<select id="getTotalBrandCount" parameterClass="Map" resultClass="int">
+		select 
+			count(*)
+		from
+			(select A.ITEM_BRAND 
+			 from
+					SHOP_ITEMS A, SHOP_CATEGORIES B
+			 where
+				 1=1
+			<dynamic>
+				and A.CATE_NO = B.CATE_NO
+				<isNotNull property="title">
+					<isEqual property="title" compareValue="WOMEN">
+						and B.main_cate_no = 109
+							<isEqual property="smallMenu" compareValue="TOP">
+								and B.cate_no = 113
+							</isEqual>
+							<isEqual property="smallMenu" compareValue="BOTTOM">
+								and B.cate_no = 114
+							</isEqual>
+					</isEqual>
+					<isEqual property="title" compareValue="MEN">
+						and B.main_cate_no = 108
+							<isEqual property="smallMenu" compareValue="TOP">
+								and B.cate_no = 111
+							</isEqual>
+							<isEqual property="smallMenu" compareValue="BOTTOM">
+								and B.cate_no = 112
+							</isEqual>
+					</isEqual>
+					<isEqual property="title" compareValue="ACC">
+							and B.main_cate_no = 110
+							<isEqual property="smallMenu" compareValue="JEWELRY">
+								and B.cate_no = 115
+							</isEqual>
+							<isEqual property="smallMenu" compareValue="ETC">
+								and B.cate_no = 116
+							</isEqual>
+					</isEqual>
+				</isNotNull>
+			</dynamic>
+				GROUP BY
+					A.ITEM_BRAND)
+	</select>
+	
+	<select id="searchItemsGetMinMax" parameterClass="Map" resultClass="Item">
+			select
+			item_no as no,
+			cate_no as "Category.no",
+			item_name as name,
+			item_price as price,
+			item_discount_price as discountPrice,
+			item_brand as brand,
+			item_discount_rate as discountRate,
+			item_like_count as likeCount,
+			item_image_path as imagePath			
+		from(select
+				row_number() over (order by item_name desc ) rn,
+				A.item_no,
+				A.cate_no,
+				A.item_name,
+				A.item_price,
+				A.item_discount_price,
+				A.item_brand,
+				A.item_discount_rate,
+				A.item_like_count,
+				A.item_image_path
+			  from
+			  	shop_items A, shop_categories B 
+			  where
+		   		1=1
+			   	<dynamic>
+			   		and A.cate_no = B.cate_no
+			   		<isNotNull property="title">
+					<isEqual property="title" compareValue="WOMEN">
+						and B.main_cate_no = 109
+							<isEqual property="smallMenu" compareValue="TOP">
+								and B.cate_no = 113
+							</isEqual>
+							<isEqual property="smallMenu" compareValue="BOTTOM">
+								and B.cate_no = 114
+							</isEqual>
+					</isEqual>
+					<isEqual property="title" compareValue="MEN">
+						and B.main_cate_no = 108
+							<isEqual property="smallMenu" compareValue="TOP">
+								and B.cate_no = 111
+							</isEqual>
+							<isEqual property="smallMenu" compareValue="BOTTOM">
+								and B.cate_no = 112
+							</isEqual>
+					</isEqual>
+					<isEqual property="title" compareValue="ACC">
+							and B.main_cate_no = 110
+							<isEqual property="smallMenu" compareValue="JEWELRY">
+								and B.cate_no = 115
+							</isEqual>
+							<isEqual property="smallMenu" compareValue="ETC">
+								and B.cate_no = 116
+							</isEqual>
+					</isEqual>
+				<isNotNull property="brand">
+					and A.item_brand in 
+					<iterate property="brand" open="(" close=")" conjunction=",">
+						#brand[]#
+					</iterate>
+				</isNotNull>
+				</isNotNull>
+			   	</dynamic>
+			)
+			where
+				rn >= #begin# and rn &lt;=#end#
+	</select>
+
+	<select id="searchItems" parameterClass="Map" resultClass="Item">
+		select
+			item_no as no,
+			cate_no as "category.no",
+			item_name as name,
+			item_price as price,
+			item_discount_price as discountPrice,
+			item_brand as brand,
+			item_discount_rate as discountRate,
+			item_like_count as likeCount,
+			item_image_path as imagePath			
+		from(select
+			<isEqual property="smallMenu" compareValue="BEST">
+					row_number() over (order by item_like_count desc ) rn,
+			</isEqual>
+			<isNotEqual property="smallMenu" compareValue="BEST">
+				row_number() over (order by item_name desc ) rn,
+			</isNotEqual>
+				A.item_no,
+				A.cate_no,
+				A.item_name,
+				A.item_price,
+				A.item_discount_price,
+				A.item_brand,
+				A.item_discount_rate,
+				A.item_like_count,
+				A.item_image_path
+			  from
+			  	shop_items A, shop_categories B 
+			  where
+		   		1=1
+			   	<dynamic>
+			   		and A.cate_no = B.cate_no
+			   		<isNotNull property="title">
+					<isEqual property="title" compareValue="WOMEN">
+						and B.main_cate_no = 109
+							<isEqual property="smallMenu" compareValue="TOP">
+								and B.cate_no = 113
+							</isEqual>
+							<isEqual property="smallMenu" compareValue="BOTTOM">
+								and B.cate_no = 114
+							</isEqual>
+				
+					</isEqual>
+					<isEqual property="title" compareValue="MEN">
+						and B.main_cate_no = 108
+							<isEqual property="smallMenu" compareValue="TOP">
+								and B.cate_no = 111
+							</isEqual>
+							<isEqual property="smallMenu" compareValue="BOTTOM">
+								and B.cate_no = 112
+							</isEqual>
+				
+					</isEqual>
+					<isEqual property="title" compareValue="ACC">
+							and B.main_cate_no = 110
+							<isEqual property="smallMenu" compareValue="JEWELRY">
+								and B.cate_no = 115
+							</isEqual>
+							<isEqual property="smallMenu" compareValue="ETC">
+								and B.cate_no = 116
+							</isEqual>
+					
+					</isEqual>
+				<isNotNull property="brand">
+					and A.item_brand in 
+					<iterate property="brand" open="(" close=")" conjunction=",">
+						#brand[]#
+					</iterate>
+				</isNotNull>
+					<isNotNull property="max_price">
+						and A.item_discount_price &lt;= #max_price#
+						and A.item_discount_price >= #min_price#
+					</isNotNull>
+				</isNotNull>
+			   	</dynamic>
+			)
+			where
+				rn >= #begin# and rn &lt;=#end#
+	</select>
+
+	<select id="getItemListCount" parameterClass="Map" resultClass="int">
+		select
+			count(*)
+		from
+			shop_items A, shop_categories B
+		where
+			1=1
+			<dynamic>
+			   		and A.cate_no = B.cate_no
+			   		<isNotNull property="title">
+					<isEqual property="title" compareValue="WOMEN">
+						and B.main_cate_no = 109
+							<isEqual property="smallMenu" compareValue="TOP">
+								and B.cate_no = 113
+							</isEqual>
+							<isEqual property="smallMenu" compareValue="BOTTOM">
+								and B.cate_no = 114
+							</isEqual>
+					</isEqual>
+					<isEqual property="title" compareValue="MEN">
+						and B.main_cate_no = 108
+							<isEqual property="smallMenu" compareValue="TOP">
+								and B.cate_no = 111
+							</isEqual>
+							<isEqual property="smallMenu" compareValue="BOTTOM">
+								and B.cate_no = 112
+							</isEqual>
+					</isEqual>
+					<isEqual property="title" compareValue="ACC">
+							and B.main_cate_no = 110
+							<isEqual property="smallMenu" compareValue="JEWELRY">
+								and B.cate_no = 115
+							</isEqual>
+							<isEqual property="smallMenu" compareValue="ETC">
+								and B.cate_no = 116
+							</isEqual>
+					</isEqual>
+				<isNotNull property="brand">
+					and A.item_brand in 
+					<iterate property="brand" open="(" close=")" conjunction=",">
+						#brand[]#
+					</iterate>
+				</isNotNull>
+					<isNotNull property="max_price">
+						and A.item_discount_price &lt;= #max_price#
+						and A.item_discount_price >= #min_price#
+					</isNotNull>
+				</isNotNull>
+			   	</dynamic>
+	</select>
+
+	<select id="getItembyNo" parameterClass="int" resultClass="Item">
+		select
+			item_no as no,
+			cate_no as "Category.no",
+			item_name as name,
+			item_price as price,
+			item_discount_price as discountPrice,
+			item_brand as brand,
+			item_discount_rate as discountRate,
+			item_like_count as likeCount,
+			item_image_path as imagePath			
+		from
+			shop_items 
+		where
+			item_no = #value#
+			and item_soldout = 'N'
+			and item_isdelete= 'N'
+			and item_is_display = 'Y'
+	</select>
+	
+	<select id="getItemListbyMenu" parameterClass="Map" resultClass="Item">
+		select
+			A.item_no as no,
+			A.cate_no as "Category.no",
+			A.item_name as name,
+			A.item_price as price,
+			A.item_discount_price as discountPrice,
+			A.item_brand as brand,
+			A.item_discount_rate as discountRate,
+			A.item_like_count as likeCount,
+			A.item_image_path as imagePath
+		from
+			shop_items A, shop_categories B
+		where
+			1=1
+		<dynamic>
+			and A.cate_no = B.cate_no
+			<isNotNull property="title">
+				<isEqual property="title" compareValue="WOMEN">
+					and B.main_cate_no = 109
+						<isEqual property="smallMenu" compareValue="TOP">
+							and B.cate_no = 113
+						</isEqual>
+						<isEqual property="smallMenu" compareValue="BOTTOM">
+							and B.cate_no = 114
+						</isEqual>
+				</isEqual>
+				<isEqual property="title" compareValue="MEN">
+					and B.main_cate_no = 108
+						<isEqual property="smallMenu" compareValue="TOP">
+							and B.cate_no = 111
+						</isEqual>
+						<isEqual property="smallMenu" compareValue="BOTTOM">
+							and B.cate_no = 112
+						</isEqual>
+				</isEqual>
+				<isEqual property="title" compareValue="ACC">
+						and B.main_cate_no = 110
+						<isEqual property="smallMenu" compareValue="JEWELRY">
+							and B.cate_no = 115
+						</isEqual>
+						<isEqual property="smallMenu" compareValue="ETC">
+							and B.cate_no = 116
+						</isEqual>
+				</isEqual>
+				<isNotNull property="max_price">
+					and A.item_discount_price &lt;= #max_price#
+					and A.item_discount_price >= #min_price#
+				</isNotNull>
+			</isNotNull>
+		</dynamic>
+	</select>
+	
+	<select id="getItemListbyNameCount" parameterClass="Map" resultClass="int">
+		select
+			count(*)
+		from(select
+				A.item_no,
+				A.cate_no,
+				A.item_name,
+				A.item_price,
+				A.item_discount_price,
+				A.item_brand,
+				A.item_discount_rate,
+				A.item_like_count,
+				A.item_image_path
+			  from
+			  	shop_items A, shop_categories B 
+		where
+			1=1
+			<dynamic>
+				and A.cate_no = B.cate_no
+			<isNotNull property="search">
+				<isNotEqual property="search" compareValue="">
+					and item_name like '%' || #search# || '%'
+				</isNotEqual>
+			</isNotNull>
+			<isNotNull property="max_price">
+					and item_discount_ㅇprice &lt;= #max_price#
+					and item_discount_price >= #min_price#
+			</isNotNull>
+			<isNotNull property="cate">
+					<isEqual property="cate" compareValue="NEW">
+								order by 
+									cate_no desc
+					</isEqual>
+					<isEqual property="cate" compareValue="RECOMAND">
+								order by 
+									item_like_count desc
+					</isEqual>
+					<isEqual property="cate" compareValue="ROWPRICE">
+								order by 
+									item_discount_price asc
+					</isEqual>
+					<isEqual property="cate" compareValue="HIGHPRICE">
+								order by 
+									item_discount_price desc
+					</isEqual>
+					<isEqual property="cate" compareValue="HIGHDISCOUNT">
+								order by 
+									item_discount_rate desc
+					</isEqual>
+			</isNotNull>
+		</dynamic>
+		)
+	</select>
+	
+	<select id="getItemListTotal" parameterClass="Map" resultClass="Item">
+		select
+			item_no as no,
+			cate_no as "Category.no",
+			item_name as name,
+			item_price as price,
+			item_discount_price as discountPrice,
+			item_brand as brand,
+			item_discount_rate as discountRate,
+			item_like_count as likeCount,
+			item_image_path as imagePath
+		from(select
+				A.item_no,
+				A.cate_no,
+				A.item_name,
+				A.item_price,
+				A.item_discount_price,
+				A.item_brand,
+				A.item_discount_rate,
+				A.item_like_count,
+				A.item_image_path
+			  from
+			  	shop_items A, shop_categories B 
+		where
+			1=1
+			<dynamic>
+			and A.cate_no = B.cate_no
+			<isNotNull property="search">
+					and item_name like '%' || #search# || '%'
+			</isNotNull>
+			<isNotNull property="max_price">
+					and A.item_discount_price &lt;= #max_price#
+					and A.item_discount_price >= #min_price#
+			</isNotNull>
+			<isNotNull property="cate">
+					<isEqual property="cate" compareValue="NEW">
+								order by 
+									A.cate_no desc
+					</isEqual>
+					<isEqual property="cate" compareValue="RECOMAND">
+								order by 
+									A.item_like_count desc
+					</isEqual>
+					<isEqual property="cate" compareValue="ROWPRICE">
+								order by 
+									A.item_discount_price asc
+					</isEqual>
+					<isEqual property="cate" compareValue="HIGHPRICE">
+								order by 
+									A.item_discount_price desc
+					</isEqual>
+					<isEqual property="cate" compareValue="HIGHDISCOUNT">
+								order by 
+									A.item_discount_rate desc
+					</isEqual>
+			</isNotNull>
+		)
+		</dynamic>
+	</select>
+	
+	<select id="getItemListbyName" parameterClass="Map" resultClass="Item">
+		select
+			item_no as no,
+			cate_no as "category.no",
+			item_name as name,
+			item_price as price,
+			item_discount_price as discountPrice,
+			item_brand as brand,
+			item_discount_rate as discountRate,
+			item_like_count as likeCount,
+			item_image_path as imagePath
+		from(select
+				row_number() over (order by
+				 <isNotNull property="cate">
+					<isEqual property="cate" compareValue="NEW">
+								A.cate_no desc,
+								 A.item_name desc											
+					</isEqual>
+					<isEqual property="cate" compareValue="BEST">
+									A.item_like_count desc,
+									 A.item_name desc	
+					</isEqual>
+					<isEqual property="cate" compareValue="ROWPRICE">
+									A.item_discount_price asc,
+									 A.item_name desc	
+					</isEqual>
+					<isEqual property="cate" compareValue="HIGHPRICE">
+									A.item_discount_price desc,
+									 A.item_name desc	
+					</isEqual>
+					<isEqual property="cate" compareValue="HIGHDISCOUNT">
+									A.item_discount_rate desc,
+									 A.item_name desc	
+					</isEqual>
+			</isNotNull>
+				  ) rn,
+				A.item_no,
+				A.cate_no,
+				A.item_name,
+				A.item_price,
+				A.item_discount_price,
+				A.item_brand,
+				A.item_discount_rate,
+				A.item_like_count,
+				A.item_image_path
+			  from
+			  	shop_items A, shop_categories B 
+		where
+			1=1
+			<dynamic>
+			and A.cate_no = B.cate_no
+			<isNotNull property="search">
+					and item_name like '%' || #search# || '%'
+			</isNotNull>
+			<isNotNull property="max_price">
+					and item_discount_price &lt;= #max_price#
+					and item_discount_price >= #min_price#
+			</isNotNull>
+		</dynamic>
+		)
+			where
+				rn >= #begin# and rn &lt;=#end#
+	</select>
+	
+	<!--리뷰갯수, 좋아요갯수를 불러오는 상품들  건희-->
+	<select id="getAllItemCountReviewandLikeBycustNo" parameterClass="int" resultClass="hashmap">
+ 		select
+			A.item_no					,
+			A.item_image_path			,
+	 		A.item_brand				,
+	 		A.item_name					,
+	 		A.item_price				,
+	 		A.item_discount_price		,
+	 		A.item_discount_rate		,
+			A.item_like_count   		,
+			A.cate_no					,
+				 (select count(*)
+				 from shop_item_options X, shop_order_products Y 
+				 where X.item_no = A.item_no
+				 and X.opt_no = Y.opt_no 
+				 and Y.review_enabled = 'Y') reviewcnt
+		from
+			shop_items A, shop_likes B
+		where
+			A.item_no = B.item_no
+			and B.cust_no = #value#
+	</select>
+
+	
+	<!--아이템번호로 좋아요 바꾸기 건희 -->
+	<update id="updateItemByItemNo" parameterClass="Item">
+		update
+			shop_items
+		set
+			item_like_count = #likeCount#
+		where
+			item_no = #no#
+	</update>
+	<!--  아이템 top리스트 구하기 -->
+	<select id="getItemTopList" parameterClass="Map" resultClass="Item">
+		select 
+			item_no as no,
+			cate_no as "category.no",
+			item_name as name,
+			item_price as price,
+			item_discount_price as discountPrice,
+			item_brand as brand,
+			item_discount_rate as discountRate,
+			item_like_count as likeCount,
+			item_image_path as imagePath,
+			item_soldout as soldout,
+			item_create_date as createDate
+			
+		from
+				(select 
+					row_number() over (order by item_like_count desc) rn, 
+					item_no,
+					cate_no,
+					item_name,
+					item_price,
+					item_discount_price,
+					item_brand,
+					item_discount_rate,
+					item_like_count,
+					item_image_path,
+					item_soldout,
+					item_create_date,
+					item_isdelete,
+					item_is_display
+				from
+					shop_items)
+				where 1=1
+				and item_soldout = 'N'
+				and item_isdelete= 'N'
+				and item_is_display = 'Y'
+				<dynamic>
+					<isNotNull property="cateno">
+				 		<isEqual property="cateno" compareValue="111">
+				 			and cate_no = 111
+				 		</isEqual>
+				 		<isEqual property="cateno" compareValue="112">
+				 			and cate_no = 112
+				 		</isEqual>
+				 		<isEqual property="cateno" compareValue="113">
+				 			and cate_no = 113
+				 		</isEqual>
+				 		<isEqual property="cateno" compareValue="114">
+				 			and cate_no = 114
+				 		</isEqual>
+				 		<isEqual property="cateno" compareValue="115">
+				 			and cate_no = 115
+				 		</isEqual>
+				 		<isEqual property="cateno" compareValue="116">
+				 			and cate_no = 116
+				 		</isEqual>
+					</isNotNull>				
+				</dynamic> 	
+		and rn &lt;=#end#
+	</select>
+</sqlMap>

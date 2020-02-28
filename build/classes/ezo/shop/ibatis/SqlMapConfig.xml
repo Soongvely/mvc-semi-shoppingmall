@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>	
+<!DOCTYPE sqlMapConfig      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map Config 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-config-2.dtd">
+
+<sqlMapConfig>
+
+	<settings useStatementNamespaces="true" />		<!-- 이름 충돌이 일어나지 않도록 생성 -->
+	
+	<typeAlias alias="Admin" type="ezo.shop.vo.Admin"/>
+	<typeAlias alias="Reply" type="ezo.shop.vo.BoardReply"/>	
+	<typeAlias alias="Category" type="ezo.shop.vo.Category"/>	
+	<typeAlias alias="Criteria" type="ezo.shop.vo.Criteria"/>
+	<typeAlias alias="Customer" type="ezo.shop.vo.Customer"/>
+	<typeAlias alias="Item" type="ezo.shop.vo.Item"/>	
+	<typeAlias alias="Option" type="ezo.shop.vo.ItemOption"/>	
+	<typeAlias alias="Order" type="ezo.shop.vo.Order"/>		
+	<typeAlias alias="OrderProduct" type="ezo.shop.vo.OrderProduct"/>		
+	<typeAlias alias="PointHistory" type="ezo.shop.vo.PointHistory"/>
+	<typeAlias alias="Board" type="ezo.shop.vo.QuestionBoard"/>	
+	<typeAlias alias="Review" type="ezo.shop.vo.Review"/>
+	<typeAlias alias="Cart" type="ezo.shop.vo.Cart"/>
+	<typeAlias alias="BrandCheck" type="ezo.shop.vo.ItemBrandsCheck"/>
+	<typeAlias alias="Like" type="ezo.shop.vo.Like"/>
+	<typeAlias alias="isearch" type="ezo.shop.vo.ItemListSearchData"/>
+	<typeAlias alias="Notice" type="ezo.shop.vo.Notice"/>
+	<typeAlias alias="ReviewCountWithStar" type="ezo.shop.vo.ReviewCountWithStar"/>
+	
+	<transactionManager type="JDBC" commitRequired="false">
+	<!-- Connection Pool 구성 정보를 설정한다. -->
+		<dataSource type="SIMPLE">
+			<property name="JDBC.Driver" value="oracle.jdbc.OracleDriver" /> 
+		  	<property name="JDBC.ConnectionURL" value="jdbc:oracle:thin:@192.168.10.66:1521:xe" />
+		   <!-- <property name="JDBC.ConnectionURL" value="jdbc:oracle:thin:@localhost:1521:xe" /> --> 
+			<property name="JDBC.Username" value="jhta_shop" />
+			<property name="JDBC.Password" value="zxcv1234" />
+		</dataSource> 		 <!-- Connection Pool에 객체들을 담아두고 Dao와 객체를 주고받으며 연결 -->
+	</transactionManager>
+	
+	<!-- 객체와 SQL이 매핑된 매퍼파일을 등록한다. -->
+	<!-- resource = xml, jsp, html 등의 파일들은 파일 경로를 입력 -->
+	<sqlMap resource="ezo/shop/ibatis/admin-items.xml" />
+	<sqlMap resource="ezo/shop/ibatis/admin-orders.xml" />
+	<sqlMap resource="ezo/shop/ibatis/admin-reviews.xml" />	
+    <sqlMap resource="ezo/shop/ibatis/admin-users.xml" />
+	<sqlMap resource="ezo/shop/ibatis/customers.xml"/>
+	<sqlMap resource="ezo/shop/ibatis/items.xml"/>
+	<sqlMap resource="ezo/shop/ibatis/itemOptions.xml" />
+	<sqlMap resource="ezo/shop/ibatis/pointhistories.xml"/>
+	<sqlMap resource="ezo/shop/ibatis/questionBoards.xml" />
+	<sqlMap resource="ezo/shop/ibatis/reviews.xml"/>
+	<sqlMap resource="ezo/shop/ibatis/orderProducts.xml"/>
+	<sqlMap resource="ezo/shop/ibatis/carts.xml"/>
+	<sqlMap resource="ezo/shop/ibatis/orders.xml"/>
+	<sqlMap resource="ezo/shop/ibatis/likes.xml"/>
+	<sqlMap resource="ezo/shop/ibatis/notices.xml"/>
+	
+	
+</sqlMapConfig>

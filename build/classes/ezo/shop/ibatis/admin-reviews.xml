@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8" ?>		<!-- 매퍼 파일 -->
+
+<!DOCTYPE sqlMap      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="adminreviews">
+
+	<resultMap class="Review" id="adminReviewMap">
+		<result property="no" column="review_no" />
+		<result property="star" column="review_star" />
+		<result property="contents" column="review_contents" />
+		<result property="createDate" column="review_create_date" />
+		<result property="imageFilename" column="review_image" />
+		<result property="orderProduct.order.customer.id" column="cust_id" />
+		<result property="orderProduct.reviewEnabled" column="review_enabled" />
+		<result property="orderProduct.order.customer.name"	column="cust_name" />
+		<result property="orderProduct.itemOption.item.name" column="item_name"/>	
+		<result property="orderProduct.itemOption.item.price" column="item_price" />
+		<result property="orderProduct.itemOption.item.discountPrice" column="item_discount_price" />
+		<result property="orderProduct.itemOption.item.discountRate" column="item_discount_rate" />
+		<result property="orderProduct.order.totalPrice" column="order_total_price" />
+		<result property="orderProduct.itemOption.color" column="opt_color" />
+		<result property="orderProduct.itemOption.size" column="opt_size" />
+	</resultMap>
+
+	<!-- 관리자 - 리뷰조회 -->	
+	<select id="getAllReviewsInBoard" resultMap="adminReviewMap">
+		select 
+			review_no
+			, review_contents
+			, review_image
+			, review_star
+			, review_create_date
+			, review_enabled
+			, cust_id
+			, cust_name
+			, item_name
+			, item_price
+			, item_discount_price
+			, item_discount_rate
+			, order_total_price
+			, opt_color
+			, opt_size
+		from
+			shop_reviews A,
+			shop_order_products B,
+			shop_orders C,
+			shop_customers D,
+			shop_items E,
+			shop_item_options F
+		where 
+			A.orderproduct_no = B.order_product_no
+			and B.order_no = C.order_no
+			and C.cust_no = D.cust_no
+			and B.opt_no = F.opt_no
+			and E.item_no = F.item_no
+	</select>
+		
+	<!-- 조건별 리뷰조회 -->
+	<select id="getReviewByReviewByCriteria" parameterClass="Criteria" resultMap="adminReviewMap">
+		select 
+			*
+		from (
+			select distinct	
+				review_no
+				, review_contents
+				, review_image
+				, review_star
+				, review_create_date
+				, review_enabled
+				, cust_id
+				, cust_name
+				, item_name
+				, item_price
+				, item_discount_price
+				, item_discount_rate
+				, order_total_price
+				, opt_color
+				, opt_size
+				<dynamic>
+			    	<isNotEmpty property="sort">
+			    		<isEqual property="sort" compareValue="date">
+			    			,row_number() over (order by review_create_date desc) as rn
+			    		</isEqual>
+			    		<isEqual property="sort" compareValue="reverse">
+			    			,row_number() over (order by review_create_date asc) as rn
+			    		</isEqual>
+			    	</isNotEmpty>
+			    </dynamic>
+			from
+				shop_reviews A,
+				shop_order_products B,
+				shop_orders C,
+				shop_customers D,
+				shop_items E,
+				shop_item_options F
+			where	
+				A.orderproduct_no = B.order_product_no
+				and B.order_no = C.order_no
+				and C.cust_no = D.cust_no
+				and B.opt_no = F.opt_no
+				and E.item_no = F.item_no
+				<dynamic>
+					<isNotEmpty property="keyword">
+						and (review_contents like '%' || #keyword# || '%'
+							or cust_id like '%' || #keyword# || '%'
+							or cust_name like '%' || #keyword# || '%'
+							or item_name like '%' || #keyword# || '%'
+							)
+					</isNotEmpty>
+					<isNotEmpty property="startDate">
+						<isNotEmpty property="endDate">
+							and review_create_date >= to_date(#startDate#, 'YYYY-MM-DD')
+							and review_create_date &lt;= to_date(#endDate#, 'YYYY-MM-DD')
+						</isNotEmpty>
+					</isNotEmpty>
+				</dynamic>
+				)
+		</select>
+		
+		<!-- 관리자 - 리뷰번호로 조회 -->	
+	<select id="getReviewByReviewNoInBoard" parameterClass="int" resultMap="adminReviewMap">
+		select 
+			review_no
+			, review_contents
+			, review_image
+			, review_star
+			, review_create_date
+			, review_enabled
+			, cust_id
+			, cust_name
+			, item_name
+			, item_price
+			, item_discount_price
+			, item_discount_rate
+			, order_total_price
+			, opt_color
+			, opt_size
+		from
+			shop_reviews A,
+			shop_order_products B,
+			shop_orders C,
+			shop_customers D,
+			shop_items E,
+			shop_item_options F
+		where 
+			A.orderproduct_no = B.order_product_no
+			and B.order_no = C.order_no
+			and C.cust_no = D.cust_no
+			and B.opt_no = F.opt_no
+			and E.item_no = F.item_no
+			and review_no = #value#
+	</select>
+	
+	<!-- 최근 3일 등록된 리뷰 총 개수 -->
+	<select id="getCountRecentReview" resultClass="int">
+		select
+			count(*)
+		from 
+			SHOP_REVIEWS
+		where
+			review_create_date >= (sysdate - 3)		
+	</select>
+	
+	
+	<!-- 관리자 - 리뷰 삭제 -->
+	<delete id="deleteReviewByReviewNoInBoard" parameterClass="Review">
+		delete from
+			shop_reviews
+		where
+			review_no = #no#		
+	</delete>
+</sqlMap>

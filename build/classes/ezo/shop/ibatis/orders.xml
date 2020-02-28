@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8" ?>      <!-- 매퍼 파일 -->
+
+<!DOCTYPE sqlMap      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="orders">
+   
+   <resultMap class="OrderProduct" id="orderMap">
+      <result property="order.no" column="order_no"/>
+   <!-- <result property="order.customer.no" column="cust_no"/> -->
+      <result property="order.createDate" column="order_create_date"/>
+      <result property="order.paymentStatus" column="order_payment_status"/>
+      <result property="order.paymentMethod" column="order_payment_method"/>
+      <result property="order.totalPrice" column="order_total_price"/>
+      <result property="orderAmount" column="order_amount"/>
+      <result property="productStatus" column="order_product_status"/>
+      <result property="no" column="order_product_no"/>
+      <result property="itemOption.item.name" column="item_name"/>
+      <result property="itemOption.item.category.no" column="cate_no"/>
+      <result property="itemOption.item.brand" column="item_brand"/>
+      <result property="itemOption.item.imagePath" column="item_image_path"/>
+      <result property="itemOption.item.discountPrice" column="item_discount_price"/>
+      <result property="itemOption.item.price" column="item_price"/>
+      <result property="itemOption.item.no" column="item_no"/>
+      <result property="itemOption.color" column="opt_color"/>
+      <result property="itemOption.size" column="opt_size"/>
+   </resultMap>
+   
+   <!-- 주문번호 선 획득 -->
+   <select id="getOrderSequence" resultClass="int">
+      select shop_order_seq.nextval
+      from dual
+   </select>
+   <!-- 주문등록 -->
+   <insert id="insertOrderByCart" parameterClass="Order">
+      insert into shop_orders(order_no, cust_no, order_payment_method, order_payment_status,order_total_price)
+      values (#no#, #customer.no#,  #paymentMethod#, #paymentStatus#,#totalPrice#)
+      
+   </insert>
+   <!-- 고객번호로 주문,주문상품 상세 조회 -->
+   <select id="getAllOrderDetailByCustNo" parameterClass="int" resultMap="orderMap">
+      select 
+         A.order_no,
+         A.order_create_date,
+         A.order_payment_status,
+         A.order_payment_method,
+         A.order_total_price,
+         B.order_amount,
+         B.order_product_status,
+         B.order_product_no,
+         D.item_name,
+         D.item_brand,
+         D.item_image_path,
+         D.item_discount_price,
+         D.item_price,
+         D.item_no,
+         C.opt_color,
+         C.opt_size,
+         D.cate_no
+      from 
+         shop_orders A, shop_order_products B, shop_item_options C, shop_items D
+      where
+          A.order_no = B.order_no
+         and B.opt_no = C.opt_no
+         and C.item_no = D.item_no
+         and A.cust_no = #value#
+      order by
+         A.order_create_date desc
+   </select>
+   
+   <!-- 주문번호로 제품 상세 조회 orderproductdao  -->
+   <select id="getOrderDetailByOrderNo" parameterClass="int" resultMap="orderMap">
+      select 
+         A.order_no,
+         A.order_create_date,
+         A.order_payment_status,
+         A.order_payment_method,
+         A.order_total_price,
+         B.order_amount,
+         B.order_product_status,
+         B.order_product_no,
+         D.item_name,
+         D.item_brand,
+         D.item_image_path,
+         D.item_discount_price,
+         D.item_price,
+         D.item_no,
+         C.opt_color,
+         C.opt_size,
+         D.cate_no
+      from 
+         shop_orders A, shop_order_products B, shop_item_options C, shop_items D
+      where
+          A.order_no = B.order_no
+         and B.opt_no = C.opt_no
+         and C.item_no = D.item_no
+         and A.order_no = #value#
+   </select>
+   
+   <!-- 주문상품번호로 제품 상세 조회 orderproductdao ddddddddddddddddddd-->
+   <select id="getOrderDetailByOrderProductNo" parameterClass="int" resultMap="orderMap">
+      select 
+         A.order_no,
+         A.order_create_date,
+         A.order_payment_status,
+         A.order_payment_method,
+         A.order_total_price,
+         B.order_amount,
+         B.order_product_status,
+         B.order_product_no,
+         D.item_name,
+         D.item_brand,
+         D.item_image_path,
+         D.item_discount_price,
+         D.item_price,
+         D.item_no,
+         C.opt_color,
+         C.opt_size,
+         D.cate_no
+      from 
+         shop_orders A, shop_order_products B, shop_item_options C, shop_items D
+      where
+          A.order_no = B.order_no
+         and B.opt_no = C.opt_no
+         and C.item_no = D.item_no
+         and B.order_product_no = #value#
+   </select>
+   
+   <!-- 최근 1주일의 주문 조회 (고객번호) orderdao  //////////////////////--> 
+   <select id="getOrdersevendaysByCustNo" parameterClass="int" resultClass="Order">
+      select 
+         order_create_date      createDate,
+         order_total_price      totalPrice,
+         order_no            	no,
+         order_payment_method   paymentMethod,
+         order_payment_status   paymentStatus
+      from 
+         shop_orders 
+      where
+         order_create_date >= (sysdate - 7)
+         and cust_no = #value#
+      order by 
+         order_create_date desc  
+   </select>
+   
+   <!-- 주문번호로 조회 orderdao-->
+   <select id="getOrderByOrderNo" parameterClass="int" resultClass="Order">
+      select 
+         order_create_date      createDate,
+         order_total_price      totalPrice,
+         order_no           	no,
+         order_payment_method   paymentMethod,
+         order_payment_status   paymentStatus
+      from 
+         shop_orders 
+      where
+         order_no = #value#
+   </select>
+   
+   <!-- 모든 주문 조회 (고객번호) orderdao //////////////-->
+   <select id="getAllOrderByCustNo" parameterClass="int" resultClass="Order">
+      select 
+         order_create_date      createDate,
+         order_total_price      totalPrice,
+         order_no            	no,
+         order_payment_method   paymentMethod,
+         order_payment_status   paymentStatus
+      from 
+         shop_orders
+      where
+         cust_no = #value#
+      order by
+         order_create_date desc
+   </select>
+   
+   <!-- 고객번호와 (주문날짜,히스토리날짜)가 같을때 포인트관련 주문번호로조회  -->
+   <select id="getPointUseAmountByOrderNo" parameterClass="int" resultClass="hashmap">
+		select
+			A.order_no,
+			A.order_create_date,
+			A.order_total_price,
+			B.point_update_date,
+			B.point_use_amount,
+			B.point_status
+		from
+			shop_orders A, shop_point_histories B 
+		where
+			A.order_create_date = B.point_update_date
+		and A.cust_no = B.cust_no
+		and A.order_no = #value#
+   </select>
+   
+
+   
+</sqlMap>

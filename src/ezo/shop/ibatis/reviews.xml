@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE sqlMap      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="reviews">
+	
+	<!-- 내가 작성한 리뷰 --> 
+	<select id="writedReviewByNo" parameterClass="int" resultClass="hashmap" >
+		select
+			D.item_brand			,
+			D.item_name 			,
+			D.item_image_path 		,
+			C.opt_color				,
+			C.opt_size				,
+			A.review_no				,
+			B.order_product_no		,
+			A.review_star			,	
+			A.review_contents		,
+			A.review_create_date	,
+			A.review_image			,
+			D.cate_no				,
+			D.item_no
+		from 
+			shop_reviews A, shop_order_products B, shop_item_options C, shop_items D 
+		where
+			 orderproduct_no in (select order_product_no
+									from shop_order_products E, shop_orders F
+									where E.order_no = F.order_no 
+									and F.cust_no = #value#
+									and E.review_enabled ='Y')
+			and A.orderproduct_no = B.order_product_no
+			and B.opt_no = C.opt_no
+			and C.item_no = D.item_no
+		order by
+			A.review_create_date
+				
+	</select>
+	
+	<!-- 상품상세페이지에 뿌릴 리뷰수와 평균별점 -->
+	<select id="getCountWithStarByItemNo" parameterClass="int" resultClass="ReviewCountWithStar">
+		select
+			count(A.review_no) as "count", 
+			nvl(ceil(avg(A.review_star)),0) as "avg"
+		from 
+			shop_reviews A, shop_order_products B, shop_item_options C, shop_items D 
+		
+		where 1=1
+		and A.orderproduct_no = B.order_product_no
+		and B.opt_no = C.opt_no
+		and C.item_no = D.item_no
+		and D.item_no = #value#
+		order by A.review_create_date
+	</select>
+	<!--  상품상세페이지에서 뿌릴 리뷰 -->
+	<select id="getReviewByItemNo" parameterClass="int" resultClass="hashmap">
+		select
+			A.review_no				,				
+			A.review_star 	 		,		
+			A.review_contents  		,		
+			A.review_image			,
+			A.review_create_date	,
+			B.order_product_no		,
+			C.opt_color				,
+			C.opt_size				,
+			C.opt_no				,
+			D.item_no				,	
+			E.order_no				,
+			F.cust_no				,
+			F.cust_id				,
+			F.cust_name				
+		from 
+			shop_reviews A, shop_order_products B, shop_item_options C, shop_items D, shop_orders E, shop_customers F
+		where 
+			 A.orderproduct_no = B.order_product_no
+			and B.opt_no = C.opt_no
+			and C.item_no = D.item_no
+			and D.item_no = #value#
+			and B.order_no = E.order_no
+			and E.cust_no = F.cust_no
+			order by A.review_create_date desc
+	</select>	
+	<!-- 리뷰추가 -->
+	<insert id="insertReview" parameterClass="Review">
+		insert into shop_reviews 
+			(review_no, orderproduct_no, review_star, review_contents, review_create_date, review_image)
+		values
+			(shop_review_seq.nextval, #orderProduct.no#, #star#, #contents#, sysdate, #imageFilename#)
+	</insert>
+	
+	 
+	<!--  주문상품번호로 조회하기-->
+	<select id="getReviewByOrderProductNo" parameterClass="int" resultClass="Review">
+		select 
+			review_no				no,
+			orderproduct_no			"orderProduct.no",
+			review_star				star,
+			review_contents			contents,
+			review_create_date		createDate,
+			review_image			imageFilename
+		from 
+			shop_reviews
+		where
+			orderproduct_no = #value#
+	</select>
+
+	<!-- 주문상품번호로 리뷰 수정하기 -->
+	<update id="updateReviewByOrderProductNo" parameterClass="Review">
+		update
+			shop_reviews
+		set
+			review_star		= #star#,
+			review_image	= #imageFilename#,
+			review_contents	= #contents#
+		where	
+			orderproduct_no = #orderProduct.no#
+	</update>
+	
+	<!-- 주문상품번호로 리뷰 삭제하기 -->
+	<delete id="deleteReviewByOrderProductNo" parameterClass="int">
+		delete from
+			shop_reviews
+		where
+			orderproduct_no = #value#
+	</delete>
+	
+	<!-- 리뷰번호로 리뷰 수정하기 
+	<update id="updateReviewByNo" parameterClass="Review">
+		update
+			shop_reviews
+		set
+			review_star		= #star#,
+			review_image	= #imageFilename#,
+			review_contents	= #contents#
+		where	
+			review_no = #no#
+	</update>
+	-->
+	
+	<!-- 리뷰번호로 조회하기
+	<select id="getReviewByReviewNo" parameterClass="int" resultClass="Review">
+		select 
+			review_no				no,
+			orderproduct_no			"orderProduct.no",
+			review_star				star,
+			review_contents			contents,
+			review_create_date		createDate,
+			review_image			imageFilename
+		from 
+			shop_reviews
+		where
+			review_no = #value#
+	</select>
+	 -->
+
+
+</sqlMap>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

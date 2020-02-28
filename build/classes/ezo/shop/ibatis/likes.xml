@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>		<!-- 매퍼 파일 -->
+
+<!DOCTYPE sqlMap      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="likes">
+	
+	<!-- 좋아요 추가 -->
+	<insert id="insertLike" parameterClass="Like">
+		insert into shop_likes (cust_no, item_no)
+		values (#customer.no#, #item.no#)
+	</insert>
+	
+	 <!-- 고객 번호로 좋아요한 상품 상위 5개 조회하기 -->
+	 <select id="getLikefiveByCustNo" parameterClass="int" resultClass="Like">
+		select *
+		from (
+			select
+				A.item_no					"item.no",
+	 			B.item_image_path			"item.imagePath",
+	 			B.item_brand				"item.brand",
+	 			B.item_name					"item.name",
+	 			B.item_price				"item.price",
+	 			B.item_discount_price		"item.discountPrice",
+	 			B.item_discount_rate		"item.discountRate",
+	 			B.item_like_count			"item.likeCount",
+	 			B.cate_no					"item.category.no"
+	 		from 
+	 			shop_likes A, shop_items B, shop_categories C 
+	 		where
+	 			 A.cust_no = #value#
+	 			and A.item_no = B.item_no
+	 			and B.cate_no = C.cate_no
+	 		order by 
+	 			item_like_count desc)
+	 	where
+	 		rownum &lt; 6
+			
+	 </select>
+	 
+	 <!-- 고객 번호로 좋아요한 상품 조회하기 -->
+	 <select id="getLikeAllByCustNo" parameterClass="int" resultClass="Like">
+	 	select 
+	 		A.item_no					"item.no", 
+	 		B.item_image_path			"item.imagePath",
+	 		B.item_brand				"item.brand",
+	 		B.item_name					"item.name",
+	 		B.item_price				"item.price",
+	 		B.item_discount_price		"item.discountPrice",
+	 		B.item_discount_rate		"item.discountRate",
+	 		B.item_like_count			"item.likeCount"
+		from 
+			shop_likes A, shop_items B
+		where
+			A.cust_no = #value#
+			and A.item_no = B.item_no
+	 </select>
+	 
+	 <!--한 고객이 좋아요 한 상품 갯수 -->
+	 <select id="getlikecountByCustNo" parameterClass="int" resultClass="int">
+	 	select
+	 	 	nvl(count(*), 0) 	 
+		from
+			shop_likes
+		where
+			cust_no = #value#
+	 </select>
+	 
+	 <!-- 아이템번호, 고객번호로 like 삭제 -->
+	<delete id="deleteLikeByItemNoandCustNo" parameterClass="Like">
+		delete from
+			shop_likes
+		where 
+			item_no = #item.no#
+			and cust_no = #customer.no#
+	</delete>
+</sqlMap>

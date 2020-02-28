@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE sqlMap      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="customers">
+	
+	<!-- 고객추가 -->
+	<insert id="insertCustomer" parameterClass="Customer" >
+		insert into shop_customers (cust_no, cust_id, cust_name, cust_password, cust_phone, cust_gender, cust_birthday, cust_address, cust_point, cust_email, cust_enabled, cust_create_date) 
+		values (shop_customer_seq.nextval, #id#, #name#, #password#, #phone#, #gender#, #birthday#, #address#, #point#, #email#, 'Y', sysdate)
+	</insert>
+	
+	<!-- 동일한 아이디 존재여부 -->
+	<select id="getCustomerByCustId" parameterClass="string" resultClass="Customer">
+		select
+			cust_no				no,
+			cust_id				id,
+			cust_name			name,
+			cust_password		password,
+			cust_phone			phone,
+			cust_gender			gender,
+			cust_birthday		birthday,
+			cust_address		address,
+			cust_point			point,
+			cust_email			email,
+			cust_enabled		enabled,
+			cust_create_date	createDate
+		from 
+			shop_customers
+		where
+			cust_id = #value#
+	
+	</select>
+	
+	<!-- 고객번호로 조회 -->
+	<select id="getCustomerByCustNo" parameterClass="int" resultClass="Customer">
+		select
+			cust_no				no,
+			cust_id				id,
+			cust_name			name,
+			cust_password		password,
+			cust_phone			phone,
+			cust_gender			gender,
+			cust_birthday		birthday,
+			cust_address		address,
+			cust_point			point,
+			cust_email			email,
+			cust_enabled		enabled,
+			cust_create_date	createDate
+		from 
+			shop_customers
+		where
+			cust_no = #value#
+	</select>
+	
+	<!-- 고객정보 변경하기 -->
+	<update id="updateCustomer" parameterClass="Customer">
+		update
+			shop_customers
+		set
+			cust_password = #password#,
+			cust_phone = #phone#,
+			cust_email = #email#,
+			cust_address = #address#,
+			cust_enabled = #enabled#,
+			cust_point = #point#
+		where
+			cust_no = #no#
+	</update>
+	
+	<!-- 고객번호로 고객 삭제 하기 
+	<delete id="deleteCustomerByCustNo" parameterClass="int" >
+		delete from
+			shop_customers
+		where
+			cust_no = #value#
+	</delete>
+	-->
+	
+	<!-- 고객 아이디 찾기 -->
+	<select id="findCustomerId" parameterClass="Customer" resultClass="String">
+		select
+			cust_id as id
+		from
+			shop_customers
+		where
+			CUST_NAME = #name#
+		and
+		 	CUST_PHONE = #phone#
+		and
+			CUST_EMAIL = #email#
+	</select>
+	
+	<!-- 고객 비밀번호 찾기  -->
+	<select id="findCustomerPwd" parameterClass="Customer" resultClass="Customer">
+		select
+			cust_id as id,
+			cust_no as no
+		from
+			shop_customers
+		where
+			CUST_NAME = #name#
+		and
+		 	CUST_PHONE = #phone#
+		and
+			CUST_EMAIL = #email#
+		and cust_id = #id#
+	</select>
+	
+	<!-- 고객 비밀번호 변겅 -->
+	<update id="changePWD" parameterClass="Customer">
+		update
+			shop_customers
+		set
+			cust_password = #password#
+		where
+			cust_no = #no#
+	</update>
+</sqlMap>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

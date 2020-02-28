@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>		<!-- 매퍼 파일 -->
+
+<!DOCTYPE sqlMap      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="itemOptions">
+	<select id="getOptionsByItemNo" parameterClass="int" resultClass="Option">
+		
+		select 
+			item_no as "Item.no",
+			opt_color  as color,
+			opt_size  as "size",
+			opt_item_soldout as isSoldout,
+			opt_stock as stock,
+			opt_no as "no"
+		from 
+			shop_item_options 
+		where 
+			item_no = #value#
+	</select>
+    <select id="getItemOptionByOptNo" parameterClass="int" resultClass="Option">
+    	select 
+			item_no as "item.no",
+			opt_color  as color,
+			opt_size  as "size",
+			opt_item_soldout as isSoldout,
+			opt_stock as stock,
+			opt_no as "no"
+		from 
+			shop_item_options 
+		where 
+			opt_no = #value#
+    </select>
+    <update id="updateOptStock" parameterClass="Option">
+    	update
+    		shop_item_options
+    	set
+    		opt_stock = #stock#
+    	where
+    		opt_no = #no#
+    </update>
+<!--  
+	<insert id="insertItemOption" parameterClass="int">
+		insert into shop_item_options (item_no, opt_stock, opt_no)
+		values(#value#, 100, shop_item_options_seq.nextval)
+	</insert>
+-->	
+</sqlMap>

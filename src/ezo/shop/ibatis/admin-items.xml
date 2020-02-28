@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8" ?>		<!-- 매퍼 파일 -->
+
+<!DOCTYPE sqlMap      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="adminitems">
+
+	<select id="getSalesCategory" resultClass="Category">
+	select cate_no as no, cate_name as name,price
+	from
+	(select main_cate_no,sum(price) as price
+	from
+	(select cate_no, sum(item_price) as price
+	from shop_items
+	group by cate_no)
+	natural join shop_categories
+	group by main_cate_no) A
+	join shop_categories B
+	on a.main_cate_no = b.cate_no
+	order by price desc
+	</select>
+
+	<!-- 상위 카테고리 조회 -->
+	<select id="getMainCategories" resultClass="Category">
+		select
+   			 CATE_NO		as no
+   			 , CATE_NAME	as name
+		from 
+    		SHOP_CATEGORIES
+    	where
+    		MAIN_CATE_NO is null
+	</select>
+	
+	<!-- 하위 카테고리 조회 -->
+	<select id="getSubCategories" parameterClass="int" resultClass="Category">
+		select
+   			 CATE_NO		as no
+   			 , CATE_NAME	as name
+		from 
+    		SHOP_CATEGORIES
+    	where
+    		MAIN_CATE_NO = #value# 
+    	order by
+    		 CATE_NAME desc	
+	</select>
+	
+	<!-- 관리자: 모든 상품 조회 -->
+	<select id="getItemByItemNo" parameterClass="int" resultClass="Item">
+		select
+			c.main_cate_no          as "category.mainCateNo"
+            ,C.cate_name            as "category.name"
+			,C.cate_no 				as "category.no"
+			,I.item_no 				as no
+			,I.item_name 			as name
+			,I.item_price 			as price
+			,I.item_discount_price 	as discountPrice
+			,I.item_soldout 		as soldout
+			,I.item_is_discount	    as isDiscount
+			,I.item_is_display	    as isDisplay
+			,I.item_create_date	    as createDate
+			,I.item_brand 			as brand
+			,I.item_image_path 		as imagePath
+			,I.item_like_count		as likeCount
+			,I.item_discount_rate 	as discountRate
+			,I.ITEM_ISDELETE		as isDelete
+		
+		from
+			SHOP_ITEMS I, shop_categories C
+        where
+            i.cate_no = c.cate_no
+            and I.ITEM_ISDELETE = 'N'
+            and I.ITEM_NO = #value#
+	</select>
+	
+	<!-- 옵션 조회 -->
+	<select id="getOptionByItemNo" parameterClass="int" resultClass="Option">
+		select
+			opt_no		as no
+			,opt_stock	as stock
+			,opt_color	as color
+			,opt_size	as "size"
+		from
+			shop_item_options
+		where
+			item_no = #value#
+		order by 
+			opt_color desc	 	
+	</select>
+
+	<!-- 조건별 상품 조회 -->
+	<select id="getItemByCriteria" parameterClass="Criteria" resultClass="Item">
+		select 
+			*
+		from (	
+			select 
+				c.main_cate_no          as "category.mainCateNo"
+	            ,C.cate_name            as "category.name"
+				,I.item_no 				as no
+				,I.cate_no 				as "category.no"
+				,I.item_name 			as name
+				,I.item_price 			as price
+				,I.item_discount_price 	as discountPrice
+				,I.item_soldout 		as soldout
+				,I.item_is_discount	    as isDiscount
+				,I.item_is_display	    as isDisplay
+				,I.item_create_date	    as createDate
+				,I.item_brand 			as brand
+				,I.item_image_path 		as imagePath
+				,I.item_like_count		as likeCount
+				,I.item_discount_rate 	as discountRate
+				,I.ITEM_ISDELETE		as isDelete
+	             <dynamic>
+			    	<isNotEmpty property="sort">
+			    		<isEqual property="sort" compareValue="max">
+			    			,row_number() over (order by I.item_price desc) as rn
+			    		</isEqual>
+			    		<isEqual property="sort" compareValue="min">
+			    			,row_number() over (order by I.item_price asc) as rn
+			    		</isEqual>
+			    		<isEqual property="sort" compareValue="date">
+			    			,row_number() over (order by I.item_no desc) as rn
+			    		</isEqual>
+			    	</isNotEmpty>
+			    </dynamic> 
+			from
+				SHOP_ITEMS I, shop_categories C
+	        where
+	            i.cate_no = c.cate_no
+	             and I.ITEM_ISDELETE = 'N'
+			<dynamic>
+				<isNotEmpty property="keyword">
+					and LOWER(I.item_name) like '%' || #keyword# || '%'
+				</isNotEmpty>
+				<isNotEmpty property="isDisplay">
+					<isEqual property="isDisplay" compareValue="yes">
+						and I.item_is_display = 'Y'
+					</isEqual>
+					<isEqual property="isDisplay" compareValue="no">
+						and I.item_is_display = 'N'
+					</isEqual>
+				</isNotEmpty>
+				<isNotEmpty property="startDate">
+					<isNotEmpty property="endDate">
+						and I.item_create_date >= to_date(#startDate#, 'YYYY-MM-DD')
+						and I.item_create_date &lt;= to_date(#endDate#, 'YYYY-MM-DD')
+					</isNotEmpty>
+				</isNotEmpty>
+				<isNotEqual property="subCategory" compareValue="0">
+					and I.cate_no = #subCategory#
+				</isNotEqual>
+				<isEqual property="subCategory" compareValue="0">
+					<isNotEqual property="mainCategory" compareValue="0">
+						and c.main_cate_no = #mainCategory#
+					</isNotEqual>
+				</isEqual>
+			</dynamic>
+			)
+		    where
+		    <![CDATA[
+		    	rn >= #beginIndex#
+		    	and rn <= #endIndex#
+		    ]]>
+			order by rn
+	</select>
+	
+	<!-- 상품 리스트 총 조회 건수 -->
+	<select id="getTotalCountItemList" parameterClass="Criteria" resultClass="int">
+		select count(I.item_no)
+			from
+				SHOP_ITEMS I, shop_categories C
+	        where
+	            i.cate_no = c.cate_no
+	             and I.ITEM_ISDELETE = 'N'
+			<dynamic>
+				<isNotEmpty property="keyword">
+					and I.item_name like '%' || #keyword# || '%'
+				</isNotEmpty>
+				<isNotEmpty property="isDisplay">
+					<isEqual property="isDisplay" compareValue="yes">
+						and I.item_is_display = 'Y'
+					</isEqual>
+					<isEqual property="isDisplay" compareValue="no">
+						and I.item_is_display = 'N'
+					</isEqual>
+				</isNotEmpty>
+				<isNotEmpty property="startDate">
+					<isNotEmpty property="endDate">
+						and I.item_create_date >= to_date(#startDate#, 'YYYY-MM-DD')
+						and I.item_create_date &lt;= to_date(#endDate#, 'YYYY-MM-DD')
+					</isNotEmpty>
+				</isNotEmpty>
+				<isNotEqual property="subCategory" compareValue="0">
+					and I.cate_no = #subCategory#
+				</isNotEqual>
+				<isEqual property="subCategory" compareValue="0">
+					<isNotEqual property="mainCategory" compareValue="0">
+						and c.main_cate_no = #mainCategory#
+					</isNotEqual>
+				</isEqual>
+			</dynamic>
+	</select>
+
+	<!-- 관리자: 새 상품 등록 -->
+	<insert id="insertNewItem" parameterClass="Item">
+		insert into 
+			SHOP_ITEMS (ITEM_NO, CATE_NO, ITEM_NAME, ITEM_PRICE, ITEM_DISCOUNT_PRICE, ITEM_SOLDOUT, ITEM_IS_DISCOUNT, 
+						ITEM_IS_DISPLAY, ITEM_DISCOUNT_RATE, ITEM_IMAGE_PATH, ITEM_BRAND, ITEM_ISDELETE)
+		values
+			(SHOP_ITEM_SEQ.nextval, #category.no#, #name#, #price#, #discountPrice#, #soldout#, #isDiscount#, 
+			 #isDisplay#, #discountRate#, #imagePath#, #brand#, 'N')	
+	</insert>
+	
+	<!-- 관리자: 새 옵션 추가 -->
+	<insert id="insertNewOption" parameterClass="Option">
+		insert into
+			SHOP_ITEM_OPTIONS (ITEM_NO, OPT_COLOR, OPT_SIZE,  OPT_STOCK, OPT_NO)
+		values
+			(SHOP_ITEM_SEQ.currval, #color#, #size#, #stock#, SHOP_ITEM_OPTIONS_SEQ.nextval)	
+	</insert>
+	
+	<!-- 관리자: 상품 수정
+	<update id="updateItemByItemNo" parameterClass="Item">
+		update
+			SHOP_ITEMS
+		set
+			CATE_NO = #category.no#
+			, ITEM_NAME = #name#
+			, ITEM_PRICE = #price#
+			, ITEM_DISCOUNT_PRICE = #discountPrice#
+			, ITEM_SOLDOUT = #soldout#
+			, ITEM_IS_DISCOUNT = #isDiscount#
+			, ITEM_IS_DISPLAY = #isDisplay#
+			, ITEM_DISCOUNT_RATE = #DiscountRate#
+			, ITEM_IMAGE_PATH = #imagePath#
+			, ITEM_BRAND = #brand#
+			, ITEM_ISDELETE = #isDelete#	
+		where
+			item_no = #no#	
+	</update> -->
+	
+	<!-- 상품 정보 변경 (삭제여부 -> 'Y'로 수정) -->
+	<update id="updateItemIsDelete" parameterClass="int">	
+		update 
+		 	SHOP_ITEMS
+		set
+		 	ITEM_ISDELETE = 'Y'		
+		where
+			ITEM_NO = #value# 	
+	</update>
+</sqlMap>

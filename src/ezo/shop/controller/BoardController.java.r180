@@ -1,0 +1,186 @@
+package ezo.shop.controller;
+
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import com.sanggi.api.annotation.Mapping;
+import com.sanggi.api.annotation.Soong;
+
+import ezo.shop.dao.AdminReviewDao;
+import ezo.shop.dao.ItemDao;
+import ezo.shop.dao.QuestionBoardDao;
+import ezo.shop.util.NumberUtils;
+import ezo.shop.vo.Admin;
+import ezo.shop.vo.BoardReply;
+import ezo.shop.vo.Criteria;
+import ezo.shop.vo.Item;
+import ezo.shop.vo.Pagination;
+import ezo.shop.vo.QuestionBoard;
+import ezo.shop.vo.Review;
+
+@Soong
+public class BoardController {
+
+	private static final Logger log = Logger.getLogger(BoardController.class.getName());
+
+	QuestionBoardDao questionDao = QuestionBoardDao.getInstance();
+	AdminReviewDao adminReviewDao = AdminReviewDao.getInstance();
+
+	// 번호에 맞는 문의를 가져옴
+	@Mapping("/getQuestion")
+	public QuestionBoard getQuestionBoardByNo(HttpServletRequest request) throws SQLException {
+		int boardNo = NumberUtils.stringToNumber(request.getParameter("no"));
+		QuestionBoard board = questionDao.getQuestionBoardByNo(boardNo);
+		return board;
+	}
+
+	// 조건별 문의 조회
+	@Mapping("/getQuestionByCriteria")
+	public HashMap<String, Object> getQuestionByCriteria(HttpServletRequest request) throws SQLException {
+
+		log.info("/api/getQuestionByCriteria ...");
+
+		String questionType = request.getParameter("questionType");
+		String startDate = request.getParameter("startDate");
+		String endDate = request.getParameter("endDate");
+		String answered = request.getParameter("answerd");
+		String keyword = request.getParameter("keyword");
+		String sort = request.getParameter("sort");
+		int page = NumberUtils.stringToNumber(request.getParameter("page"));
+
+		log.info("current Page >>" + page);
+		
+		if (page < 1)
+			page = 1;
+
+		Criteria cri = new Criteria();
+		cri.setQuestionType(questionType);
+		cri.setStartDate(startDate);
+		cri.setEndDate(endDate);
+		cri.setAnswer(answered);
+		cri.setKeyword(keyword);
+		cri.setSort(sort);
+		cri.setPage(page);
+
+		int totalCount = questionDao.getTotalCount(cri);
+		log.info("total count >>" + totalCount);
+
+		Pagination pagination = new Pagination(page, totalCount, 15, 3);
+
+		cri.setBeginIndex(pagination.getBeginIndex());
+		cri.setEndIndex(pagination.getEndIndex());
+
+		HashMap<String, Object> model = new HashMap<String, Object>();
+		List<QuestionBoard> list = questionDao.getQuestionBoardsByCriteria(cri);
+		
+		log.info("Pagination >> " + pagination);
+		
+		model.put("list", list);
+		model.put("beginPage", pagination.getBeginPage());
+		model.put("endPage", pagination.getEndPage());
+		model.put("totalPage", pagination.getTotalPagesCount());
+		model.put("totalCount", totalCount);
+
+		return model;
+	}
+
+	// 조건별 리뷰 조회
+	@Mapping("/getReviewByCriteria")
+	public List<Review> getReviewByCriteria(HttpServletRequest request) throws SQLException {
+
+		Criteria cri = new Criteria();
+		cri.setStartDate(request.getParameter("startDate"));
+		cri.setEndDate(request.getParameter("endDate"));
+		cri.setKeyword(request.getParameter("keyword"));
+		cri.setSort(request.getParameter("sort"));
+		cri.setPage(NumberUtils.stringToNumber(request.getParameter("page")));
+
+		List<Review> list = adminReviewDao.getReviewByReviewByCriteria(cri);
+		return list;
+	}
+
+	// 게시글 답글 추가
+	@Mapping("/insertBoardReply")
+	public void insertBoardReply(HttpServletRequest request) throws SQLException {
+
+		HttpSession session = request.getSession();
+
+		int boardNo = NumberUtils.stringToNumber(request.getParameter("no"));
+		String contents = request.getParameter("contents");
+		Admin admin = (Admin) session.getAttribute("LOGINED_ADMIN");
+
+		BoardReply reply = new BoardReply();
+		reply.setAdmin(admin);
+		reply.setContents(contents);
+		reply.setNo(boardNo);
+		reply.setType("");
+
+		questionDao.insertBoardReply(reply);
+		questionDao.updateBoardReplyStatus(boardNo);
+	}
+	
+	@Mapping("/getNextItemList")
+	public List<Item> getNextItemList(HttpServletRequest request) throws SQLException {
+		ItemDao itemdao = ItemDao.getInstance();
+		Map<String,Object> keyWord = new HashMap<String, Object>();
+		
+		String max_price = request.getParameter("max_price");
+		String min_price = request.getParameter("min_price");
+		String cate = request.getParameter("cate");
+		String pageNo = request.getParameter("pageNo");
+		String record = request.getParameter("record");
+		String search = request.getParameter("search");
+		
+		int pageno = NumberUtils.stringToNumber(pageNo);
+		int reCord = NumberUtils.stringToNumber(record);
+		
+		
+		if(!max_price.equals("null")) {
+			System.out.println("max_price:"+max_price);
+			keyWord.put("max_price", max_price);
+		}
+		if(!min_price.equals("null")) {
+			System.out.println("min_price:"+min_price);
+			keyWord.put("min_price", min_price);
+		}
+		if(!cate.equals("null")) {
+			System.out.println("카테:"+cate);
+			keyWord.put("cate", cate);
+		}
+		if(!search.equals("null")) {
+			keyWord.put("search", search);
+			System.out.println("search:"+search);
+		}
+		
+		int totalRows = itemdao.getItemListbyNameCount(keyWord);
+		Pagination pagination = new Pagination(pageno, totalRows, reCord);
+		System.out.println("totalRows:"+ totalRows);
+		keyWord.put("begin", pagination.getBeginIndex());
+		keyWord.put("end", pagination.getEndIndex());
+		
+		System.out.println("begin :"+ pagination.getBeginIndex());
+		System.out.println("end :"+ pagination.getEndIndex());
+		
+		List<Item> itemList = itemdao.getItemListbyName(keyWord); 
+		
+		return itemList;
+	}
+	
+	@Mapping("/getSearchItemName")
+	public List<Item> getSearchItemName(HttpServletRequest request) throws SQLException {
+		ItemDao itemdao = ItemDao.getInstance();
+		
+		String searchText = request.getParameter("searchText");
+		
+		
+		List<Item> items = itemdao.getSearchItemName(searchText);
+		
+		return items;
+	}
+}

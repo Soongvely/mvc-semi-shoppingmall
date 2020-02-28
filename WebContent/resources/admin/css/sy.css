@@ -1,0 +1,263 @@
+/**************pane**************/
+.sy-green-panel {
+	text-align: center;
+	background: #4ECDC4;
+}
+
+.sy-green-panel .sy-green-header {
+	background:#43b1a9;
+	padding: 3px;
+	margin-bottom: 15px;
+	color: white;
+}
+
+.form-panel {
+	padding-left: 20px;
+}
+
+/**************sidebar**************/
+ul.sidebar-menu li a {
+	font-size: 14px;
+}
+
+.steps .firstblock {
+	background: #eeeeee;
+}
+
+.steps .firstblock:hover {
+	background: #eeeeee;
+}
+
+/**************table**************/
+.sy-table-tr {
+	background: #eee;
+	text-align: center;
+}
+
+.sy-table-opt {
+	margin-top: 3%;
+	border: 1px solid grey;
+}
+
+.sy-table-opt tr {
+	text-align: center;
+}
+
+.sy-table-opt th {
+	text-align: center;
+	background: #eee;
+}
+
+.sy-table-opt tr td {
+	min-height: 100px;
+}
+
+.sy-table-tr th:nth-child(n+1) {
+	text-align: center;
+	vertical-align: middle;
+}
+
+.board-bottom-sy td:nth-child(3) {
+	text-align: left;
+	vertical-align: left;
+}
+
+.board-body tr td:nth-child(n+1) {
+	text-align: center;
+	vertical-align: middle;
+}
+
+.board-body-cust tr td:nth-child(n+1) {
+	text-align: center;
+	vertical-align: middle;
+}
+
+.board-body tr td:nth-child(4) {
+	text-align: left;
+	vertical-align: middle;
+}
+
+.board-body-product tr td:nth-child(n + 5) {
+	text-align: center;
+	vertical-align: middle;
+}
+
+.board-body-product tr td:nth-child(-n + 2) {
+	text-align: center;
+	vertical-align: middle;
+}
+
+#board-top-sy {
+	font-size: 13px;
+}
+
+.hidden-phone:hover {
+	color: #8974D7;
+}
+
+.sy-table-newcategory {
+	margin-top: 4%;
+	margin-left: 2%;
+	margin-bottom: 10%;
+}
+
+.sy-table-newcategory tr th {
+	background: #eee;
+	font-weight: bold;
+}
+
+.sy-table-newcategory h4 {
+	font-size: 18px;
+	display: inline-block;
+	margin: 7px;
+	margin-top: 13px;
+}
+
+.question-top {
+	padding-top: 3%;
+	padding-left: 3%;
+	padding-right: 3%;
+}
+
+.question-answer th {
+	background: #eee;
+}
+
+.question-answer td:nth-child(6) {
+	border-spacing: 10px;
+	background-color: white;
+}
+
+.question-answer td:nth-child(7) {
+	border-bottom: 1px solid #eee;
+}
+
+/**************button**************/
+td.button-ud>button {
+	margin-left: 4px;
+}
+
+.sy-btn-cal {
+	font-size: 13px;
+	background: #eee;
+	margin-right: 3px;
+}
+
+.sy-btn-cal:nth-child(3) {
+	margin-right: 30px;
+}
+
+.sy-btn-cal:hover {
+	background: lightgrey;
+}
+
+.sy-btn-category button {
+	float: right;
+}
+
+.sy-table-newcategory button {
+	margin-top: 5px;
+}
+
+#button-sy-a {
+	font-size: 13px;
+	background: #eee;
+	margin-top: 2px;
+}
+
+#button-sy-a:hover {
+	background: lightgrey;
+}
+
+.sy-btn-boardresult {
+	float: right;
+}
+
+.sy-btn-dropdown {
+	margin-right: 20px;
+}
+
+/**************label**************/
+.label-sy {
+	font-size: 95%;
+}
+
+/**************radio & checkbox**************/
+.radio-sy label {
+	padding-right: 80px;
+	padding-top: 5px;
+	padding-left: 5px;
+	font-size: 13px;
+}
+
+/**************helpblock**************/
+.help-block {
+	margin-top: 2px;
+	text-align: right
+}
+
+.help-block-sy {
+	margin-top: 15px;
+	text-align: left;
+	font-size: 13px;
+}
+
+.sy-message {
+	font-size: 17px;
+}
+/**************star**************/
+#gh .starR {
+	background: url(resources/images/profile/star.png) no-repeat right 0;
+	background-size: auto 100%;
+	width: 30px;
+	height: 30px;
+	display: inline-block;
+	text-indent: -9999px;
+	cursor: pointer;
+	border-style: none;
+}
+
+#gh .starR.on {
+	background-position: 0 0;
+}
+
+.item-image img{
+	width: 100px;
+	height: 100px;
+}
+
+/*********** div ***********/
+#answered-status {
+	margin-bottom: 0px;
+	border-bottom:none;
+}
+
+#is-sell {
+	margin-bottom: 0px; 
+	border-bottom:none;
+}
+
+input[type="date"] {
+	text-align: center;
+}
+
+.steps .firstblock {
+	background: #4ECDC4;
+    color: white;
+    font-size: 17px;
+    font-family: sans-serif;
+    text-align: center;
+    text-indent: 0px;
+    height: 52px;
+    padding-bottom: 56px;
+    opacity: 0.9;
+}
+
+.ds .desc {
+	padding: 25px 0;
+}
+
+.pn .secondblock {
+	font-size: 15px;
+}
+}

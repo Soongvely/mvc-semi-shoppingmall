@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" ?>		<!-- 매퍼 파일 -->
+
+<!DOCTYPE sqlMap      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="admins">
+	
+	<!-- 관리자아이디로 조회 --> 
+	<select id="getAdminAccountById" parameterClass="string"  resultClass="Admin">
+		select
+			MANAGER_ID			as id
+			, MANAGER_PASSWORD	as password
+		from
+			SHOP_MANAGER_ACCOUNTS	
+		where
+			manager_id = #value#	
+	</select>		
+	
+	<!-- 관리자 계성 생성 -->
+	<insert id="insertAdminAccount" parameterClass="Admin">
+		insert into
+			SHOP_MANAGER_ACCOUNTS
+		values
+			(#id#, #password#)		
+	</insert>
+	
+	<!-- 조건별 고객 조회 Criteria & Pagination -->
+	<select id="getAllCustomersByCriteria" parameterClass="Criteria" resultClass="Customer">
+		select
+			*
+		from (
+			select distinct
+				cust_no				as no
+				,cust_id			as id
+				,cust_name			as name
+				,cust_password		as password
+				,cust_phone			as phone
+				,cust_gender		as gender
+				,cust_birthday		as birthday
+				,cust_address		as address
+				,cust_point			as point
+				,cust_email			as email
+				,cust_enabled		as enabled
+				,cust_create_date	as createDate
+				<dynamic>
+					<isNotEmpty property="sort">
+						<isEqual property="sort" compareValue="regist">
+							,row_number() over (order by cust_create_date desc) as rn
+						</isEqual>
+						<isEqual property="sort" compareValue="reverse">
+							,row_number() over (order by cust_create_date asc) as rn
+						</isEqual>
+					</isNotEmpty>
+				</dynamic>
+			from 
+				shop_customers
+			where 1 = 1 
+			<dynamic>
+				<isNotEmpty property="startDate">
+					<isNotEmpty property="endDate">
+						and cust_create_date >= to_date(#startDate#, 'YYYY-MM-DD')
+						and cust_create_date &lt;= to_date(#endDate#, 'YYYY-MM-DD') 
+					</isNotEmpty>
+				</isNotEmpty>
+				<isNotEmpty property="keyword">
+					and (cust_id like '%' || #keyword# ||'%'
+						or cust_name like '%' || #keyword# || '%'
+						or cust_email like '%' || #keyword# || '%'
+						or cust_phone like '%' || #keyword# || '%'	
+					)
+				</isNotEmpty>
+				<isNotEmpty property="regist">
+					<isEqual property="regist" compareValue="secession">
+						 and cust_enabled = 'N'
+					</isEqual>
+					<isEqual property="regist" compareValue="regist">
+						and cust_enabled = 'Y'
+					</isEqual>
+				</isNotEmpty>
+			</dynamic>	
+			)	
+			where
+			 <![CDATA[
+		    	rn >= #beginIndex#
+		    	and rn <= #endIndex#
+			 ]]>
+			 order by rn	
+	</select>	
+
+	<!-- 조건별로 조회된 총 개수 -->
+	<select id="getTotalCountCustomerList" parameterClass="Criteria" resultClass="int">
+		select
+			count(*)
+		from 
+			shop_customers
+		where 1 = 1
+		<dynamic>
+			<isNotEmpty property="startDate">
+				<isNotEmpty property="endDate">
+					and cust_create_date >= to_date(#startDate#, 'YYYY-MM-DD')
+					and cust_create_date &lt;= to_date(#endDate#, 'YYYY-MM-DD') 
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="keyword">
+				and (cust_id like '%' || #keyword# ||'%'
+					or cust_name like '%' || #keyword# || '%'
+					or cust_email like '%' || #keyword# || '%'
+					or cust_phone like '%' || #keyword# || '%'	
+				)
+			</isNotEmpty>
+			<isNotEmpty property="regist">
+				<isEqual property="regist" compareValue="secession">
+					 and cust_enabled = 'N'
+				</isEqual>
+				<isEqual property="regist" compareValue="regist">
+					and cust_enabled = 'Y'
+				</isEqual>
+			</isNotEmpty>
+		</dynamic>	
+	</select>
+	
+	<!-- 고객아이디로 조회 -->
+	<select id="getCustomerById" parameterClass="int" resultClass="Customer">
+		select
+			cust_no				as no
+			,cust_id			as id
+			,cust_name			as name
+			,cust_password		as password
+			,cust_phone			as phone
+			,cust_gender		as as gender
+			,cust_birthday		as birthday
+			,cust_address		as address
+			,cust_point			as point
+			,cust_email			as email
+			,cust_enabled		as enabled
+			,cust_create_date	as createDate
+		from 
+			shop_customers
+		where
+			cust_id = #value#	
+	</select>	
+	
+	<!-- 고객정보 변경 -->
+	<update id="updateCustomerByAdmin" parameterClass="Customer">
+		update
+			shop_customers
+		set
+			cust_enabled = 'N'
+		where
+			cust_no = #no#
+	</update>
+
+
+</sqlMap>

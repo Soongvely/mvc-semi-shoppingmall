@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>      <!-- 매퍼 파일 -->
+
+<!DOCTYPE sqlMap      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="carts">
+	<!-- 카트 1분마다 확인해서 7일지난 것 삭제
+		0.0007 = 1분 
+	 -->
+	<delete id="deleteCarts">
+		delete 
+			from shop_carts
+		where
+			(sysdate - cart_create_date) > 0.0007
+	</delete>
+   
+   
+   <insert id="insertCart" parameterClass="Cart" >
+      insert into shop_carts (cart_no, cust_no, cart_order_amount, opt_no)
+      values (shop_cart_seq.nextval, #customer.no#, #amount#, #itemOption.no#)
+   </insert>
+   <select id="getCartByCustNo" parameterClass="int" resultClass="Cart">
+      select 
+           A.cart_no as "no",
+           A.cust_no as "customer.no",
+           A.cart_order_amount as amount,
+           B.opt_no as "itemOption.no",
+           B.opt_color as "itemOption.color",
+           B.opt_size as "itemOption.size",
+           B.opt_item_soldout as "itemOption.isSoldout",
+           B.opt_stock as "itemOption.stock",
+           C.item_no as "item.no",
+           C.cate_no as "item.category.no",
+           C.item_name as "item.name",
+           C.item_price as "item.price",
+           C.item_discount_price as "item.discountPrice",
+           C.item_create_date as "item.createDate",
+           C.item_soldout as "item.soldout",
+           C.item_is_discount as "item.isDiscount",
+           C.item_is_display as "item.isDisplay",
+           C.item_discount_rate as "item.discountRate",
+           C.item_image_path as "item.imagePath",
+           C.item_brand as "item.brand",
+           C.item_like_count as "item.likeCount"    
+           
+      from 
+         shop_carts A , shop_item_options B, shop_items C
+      where
+         A.opt_no = B.opt_no
+      and
+          B.item_no = C.item_no
+      and
+           A.cust_no = #value#
+   </select>
+      <select id="getCartByCartNo" parameterClass="int" resultClass="Cart">
+      select 
+           A.cart_no as "no",
+           A.cust_no as "customer.no",
+           A.cart_order_amount as amount,
+           B.opt_no as "itemOption.no",
+           B.opt_color as "itemOption.color",
+           B.opt_size as "itemOption.size",
+           B.opt_item_soldout as "itemOption.isSoldout",
+           B.opt_stock as "itemOption.stock",
+           C.item_no as "item.no",
+           C.cate_no as "item.category.no",
+           C.item_name as "item.name",
+           C.item_price as "item.price",
+           C.item_discount_price as "item.discountPrice",
+           C.item_create_date as "item.createDate",
+           C.item_soldout as "item.soldout",
+           C.item_is_discount as "item.isDiscount",
+           C.item_is_display as "item.isDisplay",
+           C.item_discount_rate as "item.discountRate",
+           C.item_image_path as "item.imagePath",
+           C.item_brand as "item.brand",
+           C.item_like_count as "item.likeCount"    
+           
+      from 
+         shop_carts A , shop_item_options B, shop_items C
+      where
+         A.opt_no = B.opt_no
+      and
+          B.item_no = C.item_no
+      and
+           A.cart_no = #value#
+   </select>
+   
+   <delete id="deleteCartByCartNo" parameterClass="int">
+      delete from shop_carts
+      where cart_no = #value#
+   </delete>
+   
+   
+      
+</sqlMap>

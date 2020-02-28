@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE sqlMap      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="pointhistories">
+	
+	<!-- 고객번호로 포인트내역 조회하기 -->
+	<select id="getPointHistoryByCustNo" parameterClass="int" resultClass="PointHistory">
+		select
+			A.cust_no					"customer.no",
+			A.cust_id					"customer.id",
+			A.cust_name					"customer.name",
+			A.cust_password				"customer.password",
+			A.cust_phone				"customer.phone",
+			A.cust_gender				"customer.gender",
+			A.cust_birthday				"customer.birthday",
+			A.cust_address				"customer.address",
+			A.cust_point				"customer.point",
+			A.cust_email				"customer.email",
+			A.cust_enabled				"customer.enabled",
+			A.cust_create_date			"customer.createDate",
+			B.point_update_date			updateDate,
+			B.point_status				status,
+			B.point_histories_no		no,
+			B.point_use_amount			useAmount,
+			B.point_content				contents,
+			nvl(B.order_product_no, 0)	orderProductNo
+		from 
+			shop_customers A, shop_point_histories B
+		where
+			A.cust_no = B.cust_no(+)
+			and A.cust_no = #value#
+	</select>
+	 
+	<!--  포인트 내역 추가  -->
+	<insert id="insertPointHistoryByCustNo" parameterClass="PointHistory">
+		insert into shop_point_histories (cust_no, point_update_date, point_status, point_histories_no, point_use_amount, point_content, order_product_no)
+		values (#customer.no#, sysdate, #status#, shop_point_histories_seq.nextval, #useAmount#, #contents#, #orderProductNo#)		
+	</insert>
+</sqlMap>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

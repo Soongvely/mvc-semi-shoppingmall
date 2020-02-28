@@ -1,0 +1,426 @@
+<?xml version="1.0" encoding="UTF-8" ?>		<!-- 매퍼 파일 -->
+
+<!DOCTYPE sqlMap      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="adminorders">
+
+	<!-- 관리자 주문리스트 조회 -->
+	<resultMap class="OrderProduct" id="adminOrderMap">
+		<result property="order.no" column="order_no"/>
+		<result property="order.createDate" column="order_create_date"/>
+		<result property="order.paymentStatus" column="order_payment_status"/>
+		<result property="order.paymentMethod" column="order_payment_method"/>
+		<result property="order.totalPrice" column="order_total_price"/>
+		<result property="no" column="order_product_no"/>
+		<result property="orderAmount" column="order_amount"/>
+		<result property="productStatus" column="order_product_status"/>
+		<result property="order.customer.id" column="cust_id"/>
+		<result property="order.customer.name" column="cust_name"/>
+		<result property="itemOption.item.name" column="item_name"/>
+		<result property="itemOption.item.no" column="item_no"/>
+		<result property="itemOption.color" column="opt_color"/>
+		<result property="itemOption.size" column="opt_size"/>
+	</resultMap>
+	
+	<!-- 일별 매출 조회 -->
+	
+	<resultMap class="java.util.HashMap" id="salesMap">
+		<result property="createDate" column="order_create_date"/>
+		<result property="price" column="price"/>
+	</resultMap>
+	
+	<select id="getDailySales" resultMap="salesMap">
+		select 
+	        to_char(order_create_date,'MM/DD') as order_create_date,
+	        sum(order_total_price) as price
+		from 
+			shop_orders
+		where 
+			order_create_date >= (SYSDATE - 7)
+		group 
+			by to_char(order_create_date,'MM/DD')
+	</select>
+	
+	<!-- 모든 주문리스트 조회 -->
+	<select id="getAllOrdersInAdminOrderList" resultMap="adminOrderMap">
+		select 
+		    o.order_no
+		    ,o.order_create_date
+		    ,o.order_payment_status
+		    ,o.order_payment_method
+		    ,o.order_total_price
+		    ,p.order_product_no
+		    ,p.order_product_status
+		    ,p.order_amount
+		    ,c.cust_id
+		    ,c.cust_name
+		    ,t.opt_color
+		    ,t.opt_size
+		    ,t.item_no
+		    ,i.item_name  
+		from 
+		    shop_orders O
+		    ,shop_customers C
+		    ,shop_item_options T
+		    ,shop_items I
+		    ,shop_order_products P
+		
+		where
+		    O.order_no = p.order_no
+		    and P.opt_no = T.opt_no
+		    and O.cust_no = C.cust_no
+		    and T.item_no = I.item_no
+	</select>	
+	
+	<!-- 주문상품번호로 주문리스트 조회 -->
+	<select id="getOrderProductByOrderProductNo" parameterClass="int" resultMap="adminOrderMap">
+		select 
+		    o.order_no
+		    ,o.order_create_date
+		    ,o.order_payment_status
+		    ,o.order_payment_method
+		    ,o.order_total_price
+		    ,p.order_product_no
+		    ,p.order_product_status
+		    ,p.order_amount
+		    ,c.cust_id
+		    ,c.cust_name
+		    ,t.opt_color
+		    ,t.opt_size
+		    ,t.item_no
+		    ,i.item_name  
+		from 
+		    shop_orders O
+		    ,shop_customers C
+		    ,shop_item_options T
+		    ,shop_items I
+		    ,shop_order_products P
+		
+		where
+		    O.order_no = p.order_no
+		    and P.opt_no = T.opt_no
+		    and O.cust_no = C.cust_no
+		    and T.item_no = I.item_no
+		    and P.order_product_no = #value#
+	</select>
+	
+	<!-- 조건별 주문리스트 조회 & 페이지네이션-->
+	<select id="getOrderListByCriteria" parameterClass="Criteria" resultMap="adminOrderMap">
+		select 
+			*
+		from (
+			select distinct
+			    o.order_no
+			    ,o.order_create_date
+			    ,o.order_payment_status
+			    ,o.order_payment_method
+			    ,o.order_total_price
+			    ,p.order_product_no
+			    ,p.order_product_status
+			    ,p.order_amount
+			    ,c.cust_id
+			    ,c.cust_name
+			    ,t.opt_color
+			    ,t.opt_size
+			    ,t.item_no
+			    ,i.item_name 
+			    <dynamic>
+			    	<isNotEmpty property="sort">
+			    		<isEqual property="sort" compareValue="max">
+			    			,row_number() over (order by O.order_total_price desc) as rn
+			    		</isEqual>
+			    		<isEqual property="sort" compareValue="date">
+			    			,row_number() over (order by O.order_no desc, o.order_create_date desc) as rn
+			    		</isEqual>
+			    	</isNotEmpty>
+			    </dynamic> 
+			from 
+			    shop_orders O
+			    ,shop_customers C
+			    ,shop_item_options T
+			    ,shop_items I
+			    ,shop_order_products P
+			
+			where
+			    O.order_no = p.order_no
+			    and P.opt_no = T.opt_no
+			    and O.cust_no = C.cust_no
+			    and T.item_no = I.item_no
+			    <dynamic>
+			    	<isNotEmpty property="keyword">
+			    		and ( o.order_no like '%' || #keyword# || '%'
+			    			or i.item_name like '%' || #keyword# || '%'
+			    			or c.cust_id like '%' || #keyword# || '%'
+			    			or c.cust_name like '%' || #keyword# || '%'
+			    			)
+			    	</isNotEmpty>
+			    	<isNotEmpty property="startDate">
+			    		<isNotEmpty property="endDate">
+			    			and	o.order_create_date >= to_date(#startDate#,'YYYY-MM-DD')
+			    			and o.order_create_date &lt;= to_date(#endDate#,'YYYY-MM-DD')
+			    		</isNotEmpty>
+			    	</isNotEmpty>
+			    	<isNotEmpty property="payment" >
+			    		<isEqual property="payment" compareValue="before">
+			    			and	o.order_payment_status = '입금전'
+			    		</isEqual>
+			    		<isEqual property="payment" compareValue="success">
+			    			and	o.order_payment_status = '결제완료'
+			    		</isEqual>
+			    		<isEqual property="payment" compareValue="cancle">
+			    			and	o.order_payment_status = '결제취소'
+			    		</isEqual>
+			    	</isNotEmpty>
+			    	<isNotEmpty property="order" >
+			    		<isEqual property="order" compareValue="change">
+			    			and	p.order_product_status = '교환/반품'
+			    		</isEqual>
+			    		<isEqual property="order" compareValue="success">
+			    			and	p.order_product_status = '구매확정'
+			    		</isEqual>
+			    		<isEqual property="order" compareValue="cancle">
+			    			and	p.order_product_status = '주문취소'
+			    		</isEqual>
+			    	</isNotEmpty>
+			    </dynamic>
+			    )
+			    where
+			    <![CDATA[
+			    	rn >= #beginIndex#
+			    	and rn <= #endIndex#
+				]]>	
+				order by rn	
+	</select>
+		    
+	<!--  주문리스트 총 조회 건수 -->
+	<select id="getTotalCountOrderList" parameterClass="Criteria" resultClass="int">
+		select
+			count(*)
+		from 
+		    shop_orders O
+		    ,shop_customers C
+		    ,shop_item_options T
+		    ,shop_items I
+		    ,shop_order_products P
+		
+		where
+		    O.order_no = p.order_no
+		    and P.opt_no = T.opt_no
+		    and O.cust_no = C.cust_no
+		    and T.item_no = I.item_no
+		    <dynamic>
+		    	<isNotEmpty property="keyword">
+		    		and ( o.order_no like '%' || #keyword# || '%'
+		    			or i.item_name like '%' || #keyword# || '%'
+		    			or c.cust_id like '%' || #keyword# || '%'
+		    			or c.cust_name like '%' || #keyword# || '%'
+		    			)
+		    	</isNotEmpty>
+		    	<isNotEmpty property="startDate">
+		    		<isNotEmpty property="endDate">
+		    			and	o.order_create_date >= to_date(#startDate#,'YYYY-MM-DD')
+		    			and o.order_create_date &lt;= to_date(#endDate#,'YYYY-MM-DD')
+		    		</isNotEmpty>
+		    	</isNotEmpty>
+		    	<isNotEmpty property="payment" >
+		    		<isEqual property="payment" compareValue="before">
+		    			and	o.order_payment_status = '입금전'
+		    		</isEqual>
+		    		<isEqual property="payment" compareValue="success">
+		    			and	o.order_payment_status = '결제완료'
+		    		</isEqual>
+		    		<isEqual property="payment" compareValue="cancle">
+		    			and	o.order_payment_status = '결제취소'
+		    		</isEqual>
+		    	</isNotEmpty>
+		    	<isNotEmpty property="order" >
+		    		<isEqual property="order" compareValue="change">
+		    			and	p.order_product_status = '교환/반품'
+		    		</isEqual>
+		    		<isEqual property="order" compareValue="success">
+		    			and	p.order_product_status = '구매확정'
+		    		</isEqual>
+		    		<isEqual property="order" compareValue="cancle">
+		    			and	p.order_product_status = '취소'
+		    		</isEqual>
+		    	</isNotEmpty>
+		    </dynamic>		
+	</select>
+	
+	<!-- 최근 주문 건수 조회 -->
+	<select id="getCountRecentOrder" resultClass="int">
+		select
+			count(*)
+		from 
+			shop_orders
+		where
+			order_create_date >= (sysdate - 3)	
+	</select>
+	
+	<!-- 입금 대기 건수 조회 -->
+	<select id="getCountBeforePayment" resultClass="int">
+		select
+			count(*)
+		from 
+			shop_orders
+		where
+			order_payment_status = '입금전'	
+	</select>
+	
+	<!-- 주문번호로 주문리스트 조회 -->
+	<select id="getOrderProductByOrderNo" parameterClass="int" resultMap="adminOrderMap">
+		select 
+		    o.order_no
+		    ,o.order_create_date
+		    ,o.order_payment_status
+		    ,o.order_payment_method
+		    ,o.order_total_price
+		    ,p.order_product_no
+		    ,p.order_product_status
+		    ,p.order_amount
+		    ,c.cust_id
+		    ,c.cust_name
+		    ,t.opt_color
+		    ,t.opt_size
+		    ,t.item_no
+		    ,i.item_name  
+		from 
+		    shop_orders O
+		    ,shop_customers C
+		    ,shop_item_options T
+		    ,shop_items I
+		    ,shop_order_products P
+		
+		where
+		    O.order_no = p.order_no
+		    and P.opt_no = T.opt_no
+		    and O.cust_no = C.cust_no
+		    and T.item_no = I.item_no
+		    and P.order_no = #value#
+	</select>
+	
+	<!-- 취소/교환/반품 리스트 조회 & Pagination-->
+	<select id="getOrderProductStatusListByCriteria" parameterClass="Criteria" resultMap="adminOrderMap">
+		select 
+			*
+		from (
+			select distinct 
+			    o.order_no
+			    ,o.order_create_date
+			    ,o.order_payment_status
+			    ,o.order_payment_method
+			    ,o.order_total_price
+			    ,p.order_product_no
+			    ,p.order_product_status
+			    ,p.order_amount
+			    ,c.cust_id
+			    ,c.cust_name
+			    ,t.opt_color
+			    ,t.opt_size
+			    ,t.item_no
+			    ,i.item_name  
+			    <dynamic>
+			    	<isNotEmpty property="sort">
+			    		<isEqual property="sort" compareValue="max">
+			    			,row_number() over (order by O.order_total_price desc) as rn
+			    		</isEqual>
+			    		<isEqual property="sort" compareValue="date">
+			    			,row_number() over (order by O.order_no desc, O.order_create_date) as rn
+			    		</isEqual>
+			    	</isNotEmpty>
+			    </dynamic>
+			from 
+			    shop_orders O
+			    ,shop_customers C
+			    ,shop_item_options T
+			    ,shop_items I
+			    ,shop_order_products P
+			
+			where
+			    O.order_no = p.order_no
+			    and P.opt_no = T.opt_no
+			    and O.cust_no = C.cust_no
+			    and T.item_no = I.item_no
+			    <![CDATA[
+			    and p.order_product_status <> '구매확정'
+   				and p.order_product_status <> '배송중'
+   				]]>
+			    <dynamic>
+			    	<isNotEmpty property="keyword">
+			    		and ( o.order_no like '%' || #keyword# || '%'
+			    			or i.item_name like '%' || #keyword# || '%'
+			    			or c.cust_id like '%' || #keyword# || '%'
+			    			or c.cust_name like '%' || #keyword# || '%'
+			    			)
+			    	</isNotEmpty>
+			    	<isNotEmpty property="startDate">
+			    		<isNotEmpty property="endDate">
+			    			and	o.order_create_date >= to_date(#startDate#,'YYYY-MM-DD')
+			    			and o.order_create_date &lt;= to_date(#endDate#,'YYYY-MM-DD')
+			    		</isNotEmpty>
+			    	</isNotEmpty>
+			    	<isNotEmpty property="order">
+			    		<isEqual property="order" compareValue="cancle">
+			    			and p.order_product_status = '주문취소'
+			    		</isEqual>
+			    		<isEqual property="order" compareValue="change">
+			    			and p.order_product_status = '교환/반품'
+			    		</isEqual>
+			    	</isNotEmpty>
+			   </dynamic>
+			   )
+			   where
+			    <![CDATA[
+			    	rn >= #beginIndex#
+			    	and rn <= #endIndex#
+				]]>
+				order by rn				    	
+	</select>
+	
+	<!-- 취소/교환/반품 리스트 총 조회 건수 -->
+	<select id="getTotalCountOrderProductStatusList" parameterClass="Criteria" resultClass="int">
+		select
+			count(*)
+		from 
+		    shop_orders O
+		    ,shop_customers C
+		    ,shop_item_options T
+		    ,shop_items I
+		    ,shop_order_products P
+		
+		where
+		    O.order_no = p.order_no
+		    and P.opt_no = T.opt_no
+		    and O.cust_no = C.cust_no
+		    and T.item_no = I.item_no
+		    <![CDATA[
+		    and p.order_product_status <> '구매확정'
+   			and p.order_product_status <> '배송중'
+   			]]>
+		    <dynamic>
+		    	<isNotEmpty property="keyword">
+		    		and ( o.order_no like '%' || #keyword# || '%'
+		    			or i.item_name like '%' || #keyword# || '%'
+		    			or c.cust_id like '%' || #keyword# || '%'
+		    			or c.cust_name like '%' || #keyword# || '%'
+		    			)
+		    	</isNotEmpty>
+		    	<isNotEmpty property="startDate">
+		    		<isNotEmpty property="endDate">
+		    			and	o.order_create_date >= to_date(#startDate#,'YYYY-MM-DD')
+		    			and o.order_create_date &lt;= to_date(#endDate#,'YYYY-MM-DD')
+		    		</isNotEmpty>
+		    	</isNotEmpty>
+		    	<isNotEmpty property="order">
+		    		<isEqual property="order" compareValue="cancle">
+		    			and p.order_product_status = '주문취소'
+		    		</isEqual>
+		    		<isEqual property="order" compareValue="change">
+		    			and p.order_product_status = '교환/반품'
+		    		</isEqual>
+		    	</isNotEmpty>
+		   </dynamic>
+	</select>
+</sqlMap>

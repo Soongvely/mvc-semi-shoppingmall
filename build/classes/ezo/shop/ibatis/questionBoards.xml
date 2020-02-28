@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8" ?>		<!-- 매퍼 파일 -->
+
+<!DOCTYPE sqlMap      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="boards">
+
+	<!-- 조건별 게시글 조회 -->
+	<select id="getQuestionBoardsByCriteria" parameterClass="Criteria" resultClass="Board">
+		select
+			 *  
+		from (
+			select distinct				
+			     Q.BOARD_NO				as no
+			    , C.CUST_NO				as "customer.no"
+			    , C.cust_name			as "customer.name"
+			    , C.cust_id				as "customer.id"
+			    , C.cust_email			as "customer.email"
+			    , C.cust_phone			as "customer.phone"
+			    , Q.BOARD_TYPE			as type
+			    , Q.BOARD_TITLE			as title
+			    , Q.BOARD_CONTENTS		as contents
+			    , Q.BOARD_IS_ANSWERED	as isAnswered
+			    , Q.BOARD_CREATE_DATE	as createDate
+			    <dynamic>
+			    	<isNotEmpty property="sort">
+			    		<isEqual property="sort" compareValue="date">
+			    			,row_number() over (order by Q.board_create_date desc) as rn
+			    		</isEqual>
+			    		<isEqual property="sort" compareValue="reverse">
+			    			,row_number() over (order by Q.board_create_date asc) as rn
+			    		</isEqual>	
+			    	</isNotEmpty>
+			    </dynamic>
+			from
+			    SHOP_QUESTION_BOARDS Q, SHOP_CUSTOMERS C
+			where 
+			    Q.cust_no = C.cust_no
+			    <dynamic>
+			    	<isNotEmpty property="keyword">
+			    	and (Q.BOARD_TITLE like '%' || #keyword# || '%' 
+			    		or Q.BOARD_CONTENTS like '%' || #keyword# || '%' 
+			    		or C.cust_name like '%' || #keyword# || '%' 
+			    		or C.cust_id like '%' || #keyword# || '%' 
+			    		)
+			    	</isNotEmpty>
+			    	<isNotEmpty property="answer">
+			    		<isEqual property="answer" compareValue="unanswered">
+			    			and	Q.BOARD_IS_ANSWERED = 'N'
+			    		</isEqual>
+			    		<isEqual property="answer" compareValue="answered">
+			    			and	Q.BOARD_IS_ANSWERED = 'Y'
+			    		</isEqual>
+			    	</isNotEmpty>
+			    	<isNotEmpty property="startDate">
+			    		<isNotEmpty property="endDate">
+			    			and Q.BOARD_CREATE_DATE >= to_date(#startDate#,'YYYY-MM-DD')
+			    			and Q.BOARD_CREATE_DATE &lt;= to_date(#endDate#,'YYYY-MM-DD')
+			    		</isNotEmpty>
+			    	</isNotEmpty>
+			    	<isNotEmpty property="questionType">
+			    		<isEqual property="questionType" compareValue="product">
+			    			and Q.BOARD_TYPE = '상품'	
+			    		</isEqual>
+			    		<isEqual property="questionType" compareValue="payment">
+			    			and Q.BOARD_TYPE = '결제'
+			    		</isEqual>
+			    		<isEqual property="questionType" compareValue="delivery">
+			    			and Q.BOARD_TYPE = '배송'
+			    		</isEqual>
+			    	</isNotEmpty>
+			    </dynamic>
+		    )
+		    where
+		    <![CDATA[
+		    	rn >= #beginIndex#
+		    	and rn <= #endIndex#
+		    ]]>
+		    order by rn	
+	</select>
+	
+	<!-- 답변 상태 업데이트 -->	
+	<update id="updateBoardReplyStatus" parameterClass="int">
+		update 
+			SHOP_QUESTION_BOARDS
+		set
+			BOARD_IS_ANSWERED	= 'Y'
+		where
+			BOARD_NO = #value#			
+	</update>
+	
+	<!-- 조건별 게시글 총 개수 -->
+	<select id="getTotalCount" parameterClass="Criteria" resultClass="int">
+		select 
+		  count(*)
+		from
+		    SHOP_QUESTION_BOARDS Q, SHOP_CUSTOMERS C
+		where 
+		    Q.cust_no = C.cust_no
+		    <dynamic>
+		    	<isNotEmpty property="keyword">
+		    	and (Q.BOARD_TITLE like '%' || #keyword# || '%' 
+		    		or Q.BOARD_CONTENTS like '%' || #keyword# || '%' 
+		    		or C.cust_name like '%' || #keyword# || '%' 
+		    		or C.cust_id like '%' || #keyword# || '%' 
+		    		)
+		    	</isNotEmpty>
+		    	<isNotEmpty property="answer">
+		    		<isEqual property="answer" compareValue="unanswered">
+		    			and	Q.BOARD_IS_ANSWERED = 'N'
+		    		</isEqual>
+		    		<isEqual property="answer" compareValue="answered">
+		    			and	Q.BOARD_IS_ANSWERED = 'Y'
+		    		</isEqual>
+		    	</isNotEmpty>
+		    	<isNotEmpty property="startDate">
+		    		<isNotEmpty property="endDate">
+		    			and Q.BOARD_CREATE_DATE >= to_date(#startDate#,'YYYY-MM-DD')
+		    			and Q.BOARD_CREATE_DATE &lt;= to_date(#endDate#,'YYYY-MM-DD')
+		    		</isNotEmpty>
+		    	</isNotEmpty>
+		    	<isNotEmpty property="questionType">
+		    		<isEqual property="questionType" compareValue="product">
+		    			and Q.BOARD_TYPE = '상품'	
+		    		</isEqual>
+		    		<isEqual property="questionType" compareValue="payment">
+		    			and Q.BOARD_TYPE = '결제'
+		    		</isEqual>
+		    		<isEqual property="questionType" compareValue="delivery">
+		    			and Q.BOARD_TYPE = '배송'
+		    		</isEqual>
+			    </isNotEmpty>
+		    </dynamic>
+	</select>
+
+	<!-- 미답변 문의 총 개수 -->
+	<select id="getTotalCountBoardReplyIsNot" resultClass="int">
+		select 
+		    count(*)
+		from
+		    SHOP_QUESTION_BOARDS
+		where
+			BOARD_IS_ANSWERED = 'N' 
+	</select>
+	
+	<!-- 게시글 번호로 조회 -->
+	<select id="getQuestionBoardByNo" parameterClass="int" resultClass="Board">
+		select 
+		    Q.BOARD_NO				as no
+		    , C.CUST_NO				as "customer.no"
+		    , C.cust_name			as "customer.name"
+		    , C.cust_id				as "customer.id"
+		    , C.cust_email			as "customer.email"
+		    , C.cust_phone			as "customer.phone"
+		    , Q.BOARD_TYPE			as type
+		    , Q.BOARD_TITLE			as title
+		    , Q.BOARD_CONTENTS		as contents
+		    , Q.BOARD_IS_ANSWERED	as isAnswered
+		    , Q.BOARD_CREATE_DATE	as createDate
+            , R.BOARD_REPLY_CONTENTS as "boardReply.contents"
+		from
+		    SHOP_QUESTION_BOARDS Q
+            left join shop_board_replies R 
+            on Q.board_no = R.board_no,
+            SHOP_CUSTOMERS C
+		where 
+		    Q.cust_no = C.cust_no
+		and 
+			Q.board_no = #value#
+	</select>		
+	
+	<!-- 게시글 타입으로 조회 -->
+	<select id="getQuestionBoardByType" parameterClass="string" resultClass="Board">
+		select 
+		    Q.BOARD_NO				as no
+		    , C.CUST_NO				as "customer.no"
+		    , C.cust_name			as "customer.name"
+		    , C.cust_id				as "customer.id"
+		    , C.cust_email			as "customer.email"
+		    , C.cust_phone			as "customer.phone"
+		    , Q.BOARD_TYPE			as type
+		    , Q.BOARD_TITLE			as title
+		    , Q.BOARD_CONTENTS		as contents
+		    , Q.BOARD_IS_ANSWERED	as isAnswered
+		    , Q.BOARD_CREATE_DATE	as createDate
+		from
+		    SHOP_QUESTION_BOARDS Q, SHOP_CUSTOMERS C
+		where 
+		    Q.cust_no = C.cust_no
+		    and Q.board_type = #value#    	
+	</select>	
+	
+	<!-- 게시글 삭제 -->
+	<delete id="deleteQuestionBoardByNo" parameterClass="Board">
+		delete from
+			SHOP_QUESTION_BOARDS
+		where
+			BOARD_NO = #no#		 
+	</delete>
+	
+	<!-- 게시글 답글 삭제 -->
+	<delete id="deleteBoardReply" parameterClass="Reply">
+		delete from
+			SHOP_BOARD_REPLIES
+		where
+			BOARD_NO = #no#		
+	</delete>
+	
+	<!-- 게시글 추가 -->
+	<insert id="insertQuestionBoard" parameterClass="Board">
+		insert into 
+			SHOP_QUESTION_BOARDS
+		values
+			(SHOP_QUESTION_BOARD_SEQ.nextval, #customer.no#, #type#, #title#, #contents#, #isAnswered#, sysdate)	
+	</insert>
+	
+	<!-- 게시글 답변 추가 -->
+	<insert id="insertBoardReply" parameterClass="Reply">
+		merge into 
+			SHOP_BOARD_REPLIES
+		using 
+			dual
+			on(BOARD_NO = #no#)
+		when 
+			MATCHED then
+		update
+		set 
+			BOARD_REPLY_CONTENTS = #contents#
+		WHEN 
+			NOT MATCHED THEN
+		insert (
+			BOARD_REPLY_NO
+			,MANAGER_ID
+			,BOARD_NO
+			,BOARD_REPLY_CONTENTS
+		)
+		values
+			(SHOP_BOARD_REPLY_SEQ.nextval, #admin.id#, #no#, #contents#)
+	</insert>
+	
+	<!-- 모든 게시글 조회 -->
+	<select id="getAllQuestionBoards" resultClass="Board">
+		select 
+		    Q.BOARD_NO				as no
+		    , C.CUST_NO				as "customer.no"
+		    , C.cust_name			as "customer.name"
+		    , C.cust_id				as "customer.id"
+		    , C.cust_email			as "customer.email"
+		    , C.cust_phone			as "customer.phone"
+		    , Q.BOARD_TYPE			as type
+		    , Q.BOARD_TITLE			as title
+		    , Q.BOARD_CONTENTS		as contents
+		    , Q.BOARD_IS_ANSWERED	as isAnswered
+		    , Q.BOARD_CREATE_DATE	as createDate
+		from
+		    SHOP_QUESTION_BOARDS Q, SHOP_CUSTOMERS C
+		where 
+		    Q.cust_no = C.cust_no
+		order by
+			Q.board_create_date desc     	
+	</select>	
+	
+	<!-- 모든 게시글 조회(고객번호로 ) 건희 -->
+	<select id="getAllQuestionBoardsByCustNo" parameterClass="int" resultClass="Board">
+		select 
+		    Q.BOARD_NO								as no
+		    , C.CUST_NO								as "customer.no"
+		    , C.cust_name							as "customer.name"
+		    , C.cust_id								as "customer.id"
+		    , C.cust_email							as "customer.email"
+		    , C.cust_phone							as "customer.phone"
+		    , Q.BOARD_TYPE							as type
+		    , Q.BOARD_TITLE							as title
+		    , Q.BOARD_CONTENTS						as contents
+		    , Q.BOARD_IS_ANSWERED					as isAnswered
+		    , Q.BOARD_CREATE_DATE					as createDate
+		    , nvl(B.board_reply_contents, ' ')	as "boardReply.contents"
+		from
+		    SHOP_QUESTION_BOARDS Q, SHOP_CUSTOMERS C, shop_board_replies B 
+		where 
+		    Q.cust_no = C.cust_no
+		    and Q.board_no = B.board_no(+)
+		    and C.cust_no = #value#
+		order by
+			Q.board_create_date desc 
+	</select>		
+	
+	
+	
+	<!-- 보드게시판 변경 건희 -->
+	<update id="updateBoardByboardNo" parameterClass="Board">
+		update 
+			shop_question_boards
+		set
+			board_title = #title#,
+			board_type = #type#,
+			board_contents = #contents#
+		where
+			board_no = #no#			
+	</update>
+	
+	<!-- 게시글 삭제 (보드번호로) 건희-->
+	<delete id="deleteBoardByBoardNo" parameterClass="int">
+		delete from
+			shop_question_boards
+		where
+			board_no = #value#	 
+	</delete>
+	
+</sqlMap>

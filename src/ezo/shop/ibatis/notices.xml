@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>		<!-- 매퍼 파일 -->
+
+<!DOCTYPE sqlMap      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="notices">
+
+	<select id="getAllnotice" resultClass="Notice">
+		select 
+			NOTICE_NO				no, 
+			MANAGER_ID				"admin.id",
+			NOTICE_TITLE			title, 
+			NOTICE_CONTENTS			contents, 
+			NOTICE_PASSWORD			password,
+			NOTICE_CREATE_DATE		createDate
+		from
+			shop_notices
+		order by
+			NOTICE_CREATE_DATE desc
+	</select>
+</sqlMap>
