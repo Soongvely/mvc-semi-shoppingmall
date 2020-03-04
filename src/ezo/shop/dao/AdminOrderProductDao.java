@@ -8,7 +8,6 @@ import com.ibatis.sqlmap.client.SqlMapClient;
 
 import ezo.shop.util.IbatisUtil;
 import ezo.shop.vo.Criteria;
-import ezo.shop.vo.Order;
 import ezo.shop.vo.OrderProduct;
 
 @SuppressWarnings("unchecked")

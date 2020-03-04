@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>		<!-- 매퍼 파일 -->
+<?xml version="1.0" encoding="UTF-8" ?>	
 
 <!DOCTYPE sqlMap      
     PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
@@ -7,18 +7,29 @@
 <sqlMap namespace="adminitems">
 
 	<select id="getSalesCategory" resultClass="Category">
-	select cate_no as no, cate_name as name,price
+	select 
+		cate_no as no
+		, cate_name as name
+		,price
 	from
-	(select main_cate_no,sum(price) as price
-	from
-	(select cate_no, sum(item_price) as price
-	from shop_items
-	group by cate_no)
-	natural join shop_categories
-	group by main_cate_no) A
-	join shop_categories B
-	on a.main_cate_no = b.cate_no
-	order by price desc
+		(select 
+			main_cate_no
+			,sum(price) 	price
+		from
+			(select 
+				cate_no
+				, sum(item_price)	price
+			from 
+				shop_items
+			group by 
+				cate_no)
+		natural join shop_categories
+		group by 
+			main_cate_no) A
+		join shop_categories B
+		on a.main_cate_no = b.cate_no
+		order by 
+			price desc
 	</select>
 
 	<!-- 상위 카테고리 조회 -->
@@ -35,14 +46,14 @@
 	<!-- 하위 카테고리 조회 -->
 	<select id="getSubCategories" parameterClass="int" resultClass="Category">
 		select
-   			 CATE_NO		as no
-   			 , CATE_NAME	as name
+   			 cate_no		as no
+   			 , cate_name	as name
 		from 
-    		SHOP_CATEGORIES
+    		shop_categories
     	where
-    		MAIN_CATE_NO = #value# 
+    		main_cate_no = #value# 
     	order by
-    		 CATE_NAME desc	
+    		 cate_name desc	
 	</select>
 	
 	<!-- 관리자: 모든 상품 조회 -->
