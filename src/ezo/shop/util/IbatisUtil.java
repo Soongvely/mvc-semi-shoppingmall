@@ -13,15 +13,17 @@ public class IbatisUtil {
 	
 	static {
 		/**
-		 * 해당 구문은 싱크레톤이라 큰 문제가 되지 않을 수 있으나 다른 경우였다면 아래와 같은 IO 핸들링은 시스템 장애를 불러옵니다.
+		 * 해당 구문은 싱크레톤(싱글톤인가요?)이라 큰 문제가 되지 않을 수 있으나 다른 경우였다면 아래와 같은 IO 핸들링은 시스템 장애를 불러옵니다.
 		 * refactoring 해 보세요 
-		 * 
+		 *
+		 * throw new RuntimeException -> e.printStackTrace();
+		 * RuntimeException은 프로그램을 종료 시켜 시스템 장애를 불러올 수 있다.
 		 * */
 		try {
 			 Reader reader = Resources.getResourceAsReader("ezo/shop/ibatis/SqlMapConfig.xml");
 			 sqlMap = SqlMapClientBuilder.buildSqlMapClient(reader);
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			e.printStackTrace();
 		}
 	}
 

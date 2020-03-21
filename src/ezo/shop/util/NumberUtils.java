@@ -38,15 +38,11 @@ public class NumberUtils {
 		/**
 		 * 제가 지적한 다른 포인트 부분도 이해했다면 아래 구문도 refactoring 할 수 있을 겁니다.
 		 * */
-		
-		// 페이지번호가 없으면 디폴트
-		if (str == null) {
-			return defaultNumber;
-		}
+
 		try {
 			// 정상적인 번호여야 페이지 번호 
 			return Integer.parseInt(str);
-		} catch (NumberFormatException e) {
+		} catch (Exception e) {
 			// 이상한 값이어도 디폴트
 			return defaultNumber;
 		}

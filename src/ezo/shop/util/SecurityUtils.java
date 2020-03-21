@@ -15,7 +15,8 @@ public class SecurityUtils {
 		} catch (Exception e) {
 			/**
 			 * ServletException으로 wrapping 한 이유는 ?
-			 * 
+			 *
+			 * ==> 오류를 화면에 표출하기 위해
 			 * */
 			new ServletException(e.getMessage());
 		}

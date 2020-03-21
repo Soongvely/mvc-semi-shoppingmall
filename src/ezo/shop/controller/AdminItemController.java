@@ -28,20 +28,18 @@ public class AdminItemController {
 		
 		return adminItemDao.getMainCategories();
 	}
-	
+
 	// 상위와 일치하는 하위카테고리 조회
 	@Mapping("/getSubCategories")
 	public List<Category> getSubCategories (HttpServletRequest request) throws SQLException {
-		
-		final HttpSession session = request.getSession();
-		
+
 		/**
 		 * 이런 부분도 if-else를 쓰지 말고 처리 바람
-		 * 
+		 *
+		 * ==> API 로그인 확인 로직 filter로 분리
+		 * web.xml, ezo.shop.filter.LoginFilter
 		 * */
-		if (session.getAttribute("LOGINED_ADMIN") == null) {
-			return null;
-		}
+
 		int mainCategoryNo = NumberUtils.stringToNumber(request.getParameter("mainCategoryNo"));
 
 		return adminItemDao.getSubCategories(mainCategoryNo);
@@ -50,12 +48,6 @@ public class AdminItemController {
 	// 조건별 상품조회
 	@Mapping("/getItemsByCriteria")
 	public HashMap<String, Object> getItemByCriteria (HttpServletRequest request) throws SQLException {
-		
-		final HttpSession session = request.getSession();
-		
-		if (session.getAttribute("LOGINED_ADMIN") == null) {
-			return null;
-		}
 		
 		Criteria cri = new Criteria();
 		cri.setMainCategory(NumberUtils.stringToNumber(request.getParameter("mainCategory")));
@@ -93,13 +85,7 @@ public class AdminItemController {
 	// 상품 삭제 (Y -> N)
 	@Mapping("/deleteItem")
 	public void updateItemIsDelete(HttpServletRequest request) throws SQLException {
-		
-		final HttpSession session = request.getSession();
-		
-		if (session.getAttribute("LOGINED_ADMIN") == null) {
-			return;
-		}
-		
+
 		String[] checkedNos = request.getParameterValues("ck-item");
 		
 		for (String no : checkedNos) {
@@ -110,15 +96,9 @@ public class AdminItemController {
 	// 새 상품 등록
 	@Mapping("/insertItem")
 	public void insertNewItem(HttpServletRequest request) {
-		
-		final HttpSession session = request.getSession();
-		
-		if (session.getAttribute("LOGINED_ADMIN") == null) {
-			return ;
-		}
-		
+
 	}
-	
+
 	@Mapping("/getSalesCategory")
 	public List<Category> getSalesCategory() throws SQLException {
 		return adminItemDao.getSalesCategory();

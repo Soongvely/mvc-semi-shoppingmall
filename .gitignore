@@ -1,7 +1,7 @@
 
 # Created by https://www.gitignore.io/api/svn,eclipse
 # Edit at https://www.gitignore.io/?templates=svn,eclipse
-
+.idea/**
 ### Eclipse ###
 .metadata
 bin/

@@ -23,8 +23,7 @@ public class CookieUtils {
 		 * 
 		 * */
 		for (Cookie cookie : cookies) {
-			String cookieName = cookie.getName();
-			if (cookieName.equals(name)) {
+			if (cookie.getName().equals(name)) {
 				return cookie.getValue();
 			}
 		}
