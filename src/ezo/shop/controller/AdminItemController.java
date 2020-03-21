@@ -35,6 +35,10 @@ public class AdminItemController {
 		
 		final HttpSession session = request.getSession();
 		
+		/**
+		 * 이런 부분도 if-else를 쓰지 말고 처리 바람
+		 * 
+		 * */
 		if (session.getAttribute("LOGINED_ADMIN") == null) {
 			return null;
 		}

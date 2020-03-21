@@ -13,6 +13,10 @@ public class SecurityUtils {
 			md.update(str.getBytes());
 			return bytesToHex(md.digest());
 		} catch (Exception e) {
+			/**
+			 * ServletException으로 wrapping 한 이유는 ?
+			 * 
+			 * */
 			new ServletException(e.getMessage());
 		}
 		return null;

@@ -17,6 +17,11 @@ public class CookieUtils {
 		if (cookies.length == 0) {
 			return null;
 		}
+		/**
+		 * loop 구문을 쓸 때 stack 메모리에 신경 써 주세요
+		 * Refactoring 바랍니다. 
+		 * 
+		 * */
 		for (Cookie cookie : cookies) {
 			String cookieName = cookie.getName();
 			if (cookieName.equals(name)) {

@@ -34,6 +34,11 @@ public class NumberUtils {
 	 * @return 정수값이 반환된다. 변활실패시 기본값으로 지정된 값이 반환된다.
 	 */
 	public static int stringToNumber(String str, int defaultNumber) {
+		
+		/**
+		 * 제가 지적한 다른 포인트 부분도 이해했다면 아래 구문도 refactoring 할 수 있을 겁니다.
+		 * */
+		
 		// 페이지번호가 없으면 디폴트
 		if (str == null) {
 			return defaultNumber;
