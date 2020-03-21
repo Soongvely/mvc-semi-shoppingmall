@@ -36,7 +36,12 @@ public class AAAController {
 		int pageno = NumberUtils.stringToNumber(pageNo);
 		int reCord = NumberUtils.stringToNumber(record);
 		
-		
+		/**
+		 * 
+		 * if-else 를 사용하지 말고 refactoring 해 보세요
+		 * 소스코드 전체적으로 if-else를 사용하지 않을 수 있음에도 많이 적용되어 있음
+		 * 
+		 * */
 		if(!max_price.equals("null")) {
 			System.out.println("max_price:"+max_price);
 			keyWord.put("max_price", max_price);
@@ -46,7 +51,7 @@ public class AAAController {
 			keyWord.put("min_price", min_price);
 		}
 		if(!cate.equals("null")) {
-			System.out.println("카테:"+cate);
+			System.out.println("移댄뀒:"+cate);
 			keyWord.put("cate", cate);
 		}
 		if(!search.equals("null")) {
@@ -93,6 +98,12 @@ public class AAAController {
 			
 			System.out.println("itemno:"+itemNo);
 			
+			/**
+			 * 자바도 메모리 관리해야 합니다.
+			 * 아래 구문은 스택 영역에 많은 메모리를 많이 차지합니다.
+			 * Refactoring 해 주세요
+			 * 
+			 * */
 			for(Like like : likes) {
 				if(like.getItem().getNo() == itemNo) {
 					Like thislike1 = new Like(custNo,itemNo);
