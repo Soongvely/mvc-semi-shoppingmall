@@ -13,6 +13,5 @@ public class WriteFile {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println("ªÛµ’¿Ã");
     }
 }

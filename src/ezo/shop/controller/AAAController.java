@@ -4,6 +4,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -24,29 +25,24 @@ public class AAAController {
 	@Mapping("/getNextItemList")
 	public List<Item> getNextItemList(HttpServletRequest request) throws SQLException {
 		ItemDao itemdao = ItemDao.getInstance();
-		Map<String,Object> keyWord = new HashMap<String, Object>();
-		
-		String max_price = request.getParameter("max_price");
-		String min_price = request.getParameter("min_price");
-		String cate = request.getParameter("cate");
-		String pageNo = request.getParameter("pageNo");
-		String record = request.getParameter("record");
-		String search = request.getParameter("search");
-		
+
 		int pageno = NumberUtils.stringToNumber(pageNo);
 		int reCord = NumberUtils.stringToNumber(record);
-		
+
 		/**
-		 * 
+		 *
 		 * if-else 를 사용하지 말고 refactoring 해 보세요
 		 * 소스코드 전체적으로 if-else를 사용하지 않을 수 있음에도 많이 적용되어 있음
 		 *
-		 * ==> XML의 다이나믹쿼리에서 이미 null체크가 되어있으므로 if-else구문 삭제
 		 * */
-		keyWord.put("max_price", max_price);
-		keyWord.put("min_price", min_price);
-		keyWord.put("cate", cate);
-		keyWord.put("search", search);
+		Map<String,Object> keyWord = new HashMap<String, Object>();
+
+		keyWord.put("max_price", Optional.ofNullable(request.getParameter("max_price")).orElse("0"));
+		keyWord.put("max_price", Optional.ofNullable(request.getParameter("min_price")).orElse("0"));
+		keyWord.put("max_price", Optional.ofNullable(request.getParameter("cate")).orElse("0"));
+		keyWord.put("max_price", Optional.ofNullable(request.getParameter("pageNo")).orElse("0"));
+		keyWord.put("max_price", Optional.ofNullable(request.getParameter("record")).orElse(0));
+		keyWord.put("max_price", Optional.ofNullable(request.getParameter("search")).orElse(0));
 
 		int totalRows = itemdao.getItemListbyNameCount(keyWord);
 		Pagination pagination = new Pagination(pageno, totalRows, reCord);
