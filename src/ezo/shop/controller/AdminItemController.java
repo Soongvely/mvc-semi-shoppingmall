@@ -33,13 +33,6 @@ public class AdminItemController {
 	@Mapping("/getSubCategories")
 	public List<Category> getSubCategories (HttpServletRequest request) throws SQLException {
 
-		/**
-		 * 이런 부분도 if-else를 쓰지 말고 처리 바람
-		 *
-		 * ==> API 로그인 확인 로직 filter로 분리
-		 * web.xml, ezo.shop.filter.LoginFilter
-		 * */
-
 		int mainCategoryNo = NumberUtils.stringToNumber(request.getParameter("mainCategoryNo"));
 
 		return adminItemDao.getSubCategories(mainCategoryNo);

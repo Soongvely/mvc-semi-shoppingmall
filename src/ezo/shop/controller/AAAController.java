@@ -29,12 +29,6 @@ public class AAAController {
 		int pageno = NumberUtils.stringToNumber(pageNo);
 		int reCord = NumberUtils.stringToNumber(record);
 
-		/**
-		 *
-		 * if-else 를 사용하지 말고 refactoring 해 보세요
-		 * 소스코드 전체적으로 if-else를 사용하지 않을 수 있음에도 많이 적용되어 있음
-		 *
-		 * */
 		Map<String,Object> keyWord = new HashMap<String, Object>();
 
 		keyWord.put("max_price", Optional.ofNullable(request.getParameter("max_price")).orElse("0"));
@@ -83,13 +77,7 @@ public class AAAController {
 			
 			System.out.println("itemno:"+itemNo);
 			
-			/**
-			 * 자바도 메모리 관리해야 합니다.
-			 * 아래 구문은 스택 영역에 많은 메모리를 많이 차지합니다.
-			 * Refactoring 해 주세요
-			 *
-			 * ==> Like 변수 선언 삭제
-			 * */
+
 			for(Like like : likes) {
 				if(like.getItem().getNo() == itemNo) {
 					likedao.deleteLikeByItemNoandCustNo(new Like(custNo, itemNo));
